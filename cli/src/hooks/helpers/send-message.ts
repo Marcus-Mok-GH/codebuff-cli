@@ -1,14 +1,12 @@
 import { getErrorObject } from '@codebuff/common/util/error'
 
 import {
-  markFreebuffSessionCountryBlocked,
   markFreebuffSessionEnded,
   markFreebuffSessionSuperseded,
   refreshFreebuffSession,
 } from '../use-freebuff-session'
 import { getProjectRoot } from '../../project-files'
 import { useChatStore } from '../../state/chat-store'
-import { IS_FREEBUFF } from '../../utils/constants'
 import { processBashContext } from '../../utils/bash-context-processor'
 import { markRunningAgentsAsCancelled } from '../../utils/block-operations'
 import {
@@ -400,13 +398,6 @@ export const handleRunCompletion = (params: {
 
     if (isFreeModeUnavailableError(output)) {
       updater.setError(getFreeModeUnavailableErrorMessage(output))
-      if (IS_FREEBUFF) {
-        markFreebuffSessionCountryBlocked(
-          getCountryBlockFromFreeModeError(output) ?? {
-            countryCode: 'UNKNOWN',
-          },
-        )
-      }
       finalizeAfterError()
       return
     }
@@ -418,9 +409,7 @@ export const handleRunCompletion = (params: {
       return
     }
 
-    const freebuffRateLimitMessage = IS_FREEBUFF
-      ? getFreebuffRateLimitErrorMessage(output)
-      : null
+    const freebuffRateLimitMessage = null
     if (freebuffRateLimitMessage) {
       updater.setError(freebuffRateLimitMessage)
       finalizeAfterError()
@@ -511,13 +500,6 @@ export const handleRunError = (params: {
 
   if (isFreeModeUnavailableError(error)) {
     updater.setError(getFreeModeUnavailableErrorMessage(error))
-    if (IS_FREEBUFF) {
-      markFreebuffSessionCountryBlocked(
-        getCountryBlockFromFreeModeError(error) ?? {
-          countryCode: 'UNKNOWN',
-        },
-      )
-    }
     return
   }
 
@@ -527,9 +509,7 @@ export const handleRunError = (params: {
     return
   }
 
-  const freebuffRateLimitMessage = IS_FREEBUFF
-    ? getFreebuffRateLimitErrorMessage(error)
-    : null
+  const freebuffRateLimitMessage = null
   if (freebuffRateLimitMessage) {
     updater.setError(freebuffRateLimitMessage)
     return

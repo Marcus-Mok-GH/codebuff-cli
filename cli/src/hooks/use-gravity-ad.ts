@@ -6,7 +6,6 @@ import { getAdsEnabled } from '../commands/ads'
 import { useChatStore } from '../state/chat-store'
 import { isUserActive, subscribeToActivity } from '../utils/activity-tracker'
 import { getAuthToken } from '../utils/auth'
-import { IS_FREEBUFF } from '../utils/constants'
 import { getCliEnv } from '../utils/env'
 import { logger } from '../utils/logger'
 
@@ -110,12 +109,11 @@ export const useGravityAd = (options?: {
   const { terminalHeight } = useTerminalLayout()
   const isVeryCompactHeight = terminalHeight <= 17
 
-  // Freebuff always shows ads even on compact screens (ads are mandatory there).
-  const isFreeMode = IS_FREEBUFF
+  const isFreeMode = false
 
-  // Skip ads on very compact screens unless we're in Freebuff (where ads are mandatory)
+  // Skip ads on very compact screens
   // Also skip if explicitly disabled (e.g. user has a subscription)
-  const shouldHideAds = !enabled || (isVeryCompactHeight && !isFreeMode)
+  const shouldHideAds = !enabled || isVeryCompactHeight
 
   // Use Zustand selector instead of manual subscription - only rerenders when value changes
   const hasUserMessagedStore = useChatStore((s) =>
@@ -490,7 +488,7 @@ function getAdUserAgent(): string {
 }
 
 function getCliAdRequestUserAgent(): string {
-  const product = IS_FREEBUFF ? 'Freebuff-CLI' : 'Codebuff-CLI'
+  const product = 'Codebuff-CLI'
   const version = getCliEnv().CODEBUFF_CLI_VERSION ?? 'dev'
   return `${product}/${version}`
 }
