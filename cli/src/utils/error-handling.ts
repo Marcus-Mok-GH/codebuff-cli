@@ -8,8 +8,6 @@ import type {
   FreebuffIpPrivacySignal,
 } from '@codebuff/common/types/freebuff-session'
 
-import { IS_FREEBUFF } from './constants'
-
 const defaultAppUrl = env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://codebuff.com'
 
 // Normalize unknown errors to a user-facing string.
@@ -159,7 +157,7 @@ export const getFreeModeUnavailableErrorMessage = (
   const details = getCliApiErrorDetails(error)
   const block = getCountryBlockFromFreeModeError(error)
   if (block?.countryBlockReason === 'anonymous_network') {
-    return `${IS_FREEBUFF ? 'Freebuff' : 'Free mode'} cannot be used from ${formatFreebuffHardBlockedPrivacySignals(
+    return `${'Free mode'} cannot be used from ${formatFreebuffHardBlockedPrivacySignals(
       block.ipPrivacySignals,
     )} traffic. Please disable it and try again.`
   }
@@ -208,9 +206,8 @@ export const OUT_OF_CREDITS_MESSAGE = `Out of credits. Please add credits at ${d
 export const FREEBUFF_RATE_LIMIT_MESSAGE =
   'Freebuff is temporarily busy. Please try again in a moment.'
 
-export const FREE_MODE_UNAVAILABLE_MESSAGE = IS_FREEBUFF
-  ? 'Freebuff is not available in your country.'
-  : 'Free mode is not available in your country. You can use another mode to continue.'
+export const FREE_MODE_UNAVAILABLE_MESSAGE =
+  'Free mode is not available in your country. You can use another mode to continue.'
 
 export const createErrorMessage = (
   error: unknown,

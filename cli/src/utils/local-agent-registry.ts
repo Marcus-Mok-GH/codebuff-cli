@@ -10,9 +10,8 @@ import {
 
 import type { MCPConfig } from '@codebuff/common/types/mcp'
 
-import { getSelectedFreebuffModel } from '../state/freebuff-model-store'
 import { getProjectRoot } from '../project-files'
-import { IS_FREEBUFF, type AgentMode } from './constants'
+import { type AgentMode } from './constants'
 import { getAgentIdForMode } from './freebuff-agent-selection'
 import { logger } from './logger'
 import * as bundledAgentsModule from '../agents/bundled-agents.generated'
@@ -244,10 +243,7 @@ const cachedAgentsByMode: Map<string, LocalAgentInfo[]> = new Map()
 export const loadLocalAgents = (
   currentAgentMode?: AgentMode,
 ): LocalAgentInfo[] => {
-  const selectedFreebuffModel = IS_FREEBUFF ? getSelectedFreebuffModel() : null
-  const cacheKey = selectedFreebuffModel
-    ? `${currentAgentMode ?? 'all'}:${selectedFreebuffModel}`
-    : (currentAgentMode ?? 'all')
+  const cacheKey = currentAgentMode ?? 'all'
   const cached = cachedAgentsByMode.get(cacheKey)
   if (cached) {
     return cached

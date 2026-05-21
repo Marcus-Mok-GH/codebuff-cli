@@ -164,22 +164,6 @@ const clearInput = (params: RouterParams) => {
   params.setInputValue({ text: '', cursorPosition: 0, lastEditDueToNav: false })
 }
 
-const FREEBUFF_REMOVED_COMMANDS = new Set([
-  'ads:enable',
-  'ads:disable',
-  'usage',
-  'subscribe',
-  'image',
-  'publish',
-  'gpt-5-agent',
-])
-
-const FREEBUFF_ONLY_COMMANDS = new Set([
-  'connect',
-  'plan',
-  'end-session',
-])
-
 const ALL_COMMANDS: CommandDefinition[] = [
   defineCommand({
     name: 'ads:enable',
@@ -584,9 +568,7 @@ const ALL_COMMANDS: CommandDefinition[] = [
   }),
 ]
 
-export const COMMAND_REGISTRY: CommandDefinition[] = ALL_COMMANDS.filter(
-  (cmd) => !FREEBUFF_ONLY_COMMANDS.has(cmd.name),
-)
+export const COMMAND_REGISTRY: CommandDefinition[] = ALL_COMMANDS
 
 export function findCommand(cmd: string): CommandDefinition | undefined {
   const lowerCmd = cmd.toLowerCase()
