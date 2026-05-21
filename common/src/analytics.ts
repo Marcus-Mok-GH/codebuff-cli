@@ -65,9 +65,15 @@ export function trackEvent({
   }
 
   if (!client) {
+    const apiKey = env.NEXT_PUBLIC_POSTHOG_API_KEY
+    const hostUrl = env.NEXT_PUBLIC_POSTHOG_HOST_URL
+    if (!apiKey || !hostUrl) {
+      logger.warn('Analytics skipped: missing PostHog API key or host URL')
+      return
+    }
     try {
-      client = createPostHogClient(env.NEXT_PUBLIC_POSTHOG_API_KEY, {
-        host: env.NEXT_PUBLIC_POSTHOG_HOST_URL,
+      client = createPostHogClient(apiKey, {
+        host: hostUrl,
         flushAt: 1,
         flushInterval: 0,
       })
