@@ -118,10 +118,7 @@ export const getFreebuffRateLimitErrorMessage = (
 ): string | null => {
   const details = getCliApiErrorDetails(error)
   if (details.statusCode !== 429) return null
-  if (details.errorCode === 'free_mode_rate_limited') {
-    return details.message ?? FREEBUFF_RATE_LIMIT_MESSAGE
-  }
-  return FREEBUFF_RATE_LIMIT_MESSAGE
+  return details.message ?? null
 }
 
 export const getCountryBlockFromFreeModeError = (
@@ -164,47 +161,7 @@ export const getFreeModeUnavailableErrorMessage = (
   return details.message ?? FREE_MODE_UNAVAILABLE_MESSAGE
 }
 
-/**
- * Freebuff waiting-room gate errors returned by /api/v1/chat/completions.
- *
- * Contract (see docs/freebuff-waiting-room.md):
- *   - 428 `waiting_room_required`   — no session row exists; POST /session to join.
- *   - 429 `waiting_room_queued`     — row exists but still queued.
- *   - 409 `session_superseded`      — another CLI rotated our instance id.
- *   - 409 `session_model_mismatch`  — session tier/model no longer matches.
- *   - 410 `session_expired`         — active session's expires_at has passed.
- */
-export type FreebuffGateErrorKind =
-  | 'waiting_room_required'
-  | 'waiting_room_queued'
-  | 'session_superseded'
-  | 'session_model_mismatch'
-  | 'session_expired'
-
-const FREEBUFF_GATE_STATUS: Record<FreebuffGateErrorKind, number> = {
-  waiting_room_required: 428,
-  waiting_room_queued: 429,
-  session_superseded: 409,
-  session_model_mismatch: 409,
-  session_expired: 410,
-}
-
-export const getFreebuffGateErrorKind = (
-  error: unknown,
-): FreebuffGateErrorKind | null => {
-  if (!error || typeof error !== 'object') return null
-  const errorCode = (error as { error?: unknown }).error
-  const statusCode = (error as { statusCode?: unknown }).statusCode
-  if (typeof errorCode !== 'string') return null
-  const expected = FREEBUFF_GATE_STATUS[errorCode as FreebuffGateErrorKind]
-  if (expected === undefined || statusCode !== expected) return null
-  return errorCode as FreebuffGateErrorKind
-}
-
 export const OUT_OF_CREDITS_MESSAGE = `Out of credits. Please add credits at ${defaultAppUrl}/usage`
-
-export const FREEBUFF_RATE_LIMIT_MESSAGE =
-  'Freebuff is temporarily busy. Please try again in a moment.'
 
 export const FREE_MODE_UNAVAILABLE_MESSAGE =
   'Free mode is not available in your country. You can use another mode to continue.'

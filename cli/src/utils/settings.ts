@@ -163,7 +163,7 @@ export const saveModePreference = (mode: AgentMode): void => {
 
 /**
  * Load the saved freebuff model preference. Returns undefined if none is
- * saved yet — callers should fall back to DEFAULT_FREEBUFF_MODEL_ID.
+ * saved yet — callers should fall back to a default model.
  */
 export const loadFreebuffModelPreference = (): string | undefined => {
   return loadSettings().freebuffModel
@@ -176,4 +176,3 @@ export const loadFreebuffModelPreference = (): string | undefined => {
 export const saveFreebuffModelPreference = (model: string): void => {
   saveSettings({ freebuffModel: model })
 }
-
