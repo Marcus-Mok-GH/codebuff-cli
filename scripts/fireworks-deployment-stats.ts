@@ -13,10 +13,12 @@
  *
  * Env:
  *   FIREWORKS_API_KEY    (required) — auto-loaded from .env.local via bun
- *   FIREWORKS_ACCOUNT_ID (optional) — defaults to the account in fireworks-config.ts
+ *   FIREWORKS_ACCOUNT_ID (optional) — defaults to james-65d217
  */
 
-import { FIREWORKS_ACCOUNT_ID } from '../web/src/llm-api/fireworks-config'
+export {}
+
+const FIREWORKS_ACCOUNT_ID = 'james-65d217'
 
 const API_BASE = 'https://api.fireworks.ai/v1'
 

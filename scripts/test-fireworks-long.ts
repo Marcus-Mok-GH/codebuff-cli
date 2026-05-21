@@ -21,7 +21,7 @@
  *   bun scripts/test-fireworks-long.ts glm-5.1 --deployment
  */
 
-import { FIREWORKS_DEPLOYMENT_MAP } from '../web/src/llm-api/fireworks-config'
+const FIREWORKS_DEPLOYMENT_MAP: Record<string, string> = {}
 
 export { }
 
