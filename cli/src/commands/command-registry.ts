@@ -15,7 +15,7 @@ import { useChatStore } from '../state/chat-store'
 import { useFeedbackStore } from '../state/feedback-store'
 import { useLoginStore } from '../state/login-store'
 import { getChatGptOAuthStatus } from '../utils/chatgpt-oauth'
-import { AGENT_MODES, END_SESSION_MESSAGE, IS_FREEBUFF } from '../utils/constants'
+import { AGENT_MODES, END_SESSION_MESSAGE } from '../utils/constants'
 import { getSystemMessage, getUserMessage } from '../utils/message-history'
 import { capturePendingAttachments } from '../utils/pending-attachments'
 import { getSkillByName } from '../utils/skill-registry'
@@ -392,8 +392,8 @@ const ALL_COMMANDS: CommandDefinition[] = [
       clearInput(params)
     },
   }),
-  // Mode commands generated from AGENT_MODES (excluded in Freebuff)
-  ...(IS_FREEBUFF ? [] : AGENT_MODES).map((mode) =>
+  // Mode commands generated from AGENT_MODES
+  ...AGENT_MODES.map((mode) =>
     defineCommandWithArgs({
       name: `mode:${mode.toLowerCase()}`,
       aliases: [`model:${mode.toLowerCase()}`],
@@ -502,21 +502,6 @@ const ALL_COMMANDS: CommandDefinition[] = [
   defineCommandWithArgs({
     name: 'plan',
     handler: (params, args) => {
-      // In freebuff mode, require ChatGPT connection
-      if (IS_FREEBUFF && !getChatGptOAuthStatus().connected) {
-        params.setMessages((prev) => [
-          ...prev,
-          getUserMessage(params.inputValue.trim()),
-          getSystemMessage(
-            'Connect your ChatGPT account to use /plan. Use /connect to get started.',
-          ),
-        ])
-        params.saveToHistory(params.inputValue.trim())
-        clearInput(params)
-        useChatStore.getState().setInputMode('connect:chatgpt')
-        return
-      }
-
       const trimmedArgs = args.trim()
 
       params.saveToHistory(params.inputValue.trim())
@@ -541,21 +526,6 @@ const ALL_COMMANDS: CommandDefinition[] = [
   defineCommandWithArgs({
     name: 'review',
     handler: (params, args) => {
-      // In freebuff mode, require ChatGPT connection
-      if (IS_FREEBUFF && !getChatGptOAuthStatus().connected) {
-        params.setMessages((prev) => [
-          ...prev,
-          getUserMessage(params.inputValue.trim()),
-          getSystemMessage(
-            'Connect your ChatGPT account to use /review. Use /connect to get started.',
-          ),
-        ])
-        params.saveToHistory(params.inputValue.trim())
-        clearInput(params)
-        useChatStore.getState().setInputMode('connect:chatgpt')
-        return
-      }
-
       const trimmedArgs = args.trim()
 
       params.saveToHistory(params.inputValue.trim())
@@ -614,9 +584,9 @@ const ALL_COMMANDS: CommandDefinition[] = [
   }),
 ]
 
-export const COMMAND_REGISTRY: CommandDefinition[] = IS_FREEBUFF
-  ? ALL_COMMANDS.filter((cmd) => !FREEBUFF_REMOVED_COMMANDS.has(cmd.name))
-  : ALL_COMMANDS.filter((cmd) => !FREEBUFF_ONLY_COMMANDS.has(cmd.name))
+export const COMMAND_REGISTRY: CommandDefinition[] = ALL_COMMANDS.filter(
+  (cmd) => !FREEBUFF_ONLY_COMMANDS.has(cmd.name),
+)
 
 export function findCommand(cmd: string): CommandDefinition | undefined {
   const lowerCmd = cmd.toLowerCase()

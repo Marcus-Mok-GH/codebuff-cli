@@ -57,7 +57,7 @@ import { trackEvent } from './utils/analytics'
 import { showClipboardMessage } from './utils/clipboard'
 import { readClipboardImage } from './utils/clipboard-image'
 import { returnToFreebuffLanding } from './hooks/use-freebuff-session'
-import { END_SESSION_MESSAGE, IS_FREEBUFF } from './utils/constants'
+import { END_SESSION_MESSAGE } from './utils/constants'
 import { getSystemMessage } from './utils/message-history'
 import { getInputModeConfig } from './utils/input-modes'
 
@@ -175,7 +175,7 @@ export const Chat = ({
   const hasSubscription = subscriptionData?.hasSubscription ?? false
 
   const { ads, recordImpression } = useGravityAd({
-    enabled: IS_FREEBUFF || !hasSubscription,
+    enabled: !hasSubscription,
     provider: 'gravity',
     fallbackProvider: 'zeroclick',
   })
@@ -1340,10 +1340,8 @@ export const Chat = ({
     return ` ${segments.join('   ')} `
   }, [queuePreviewTitle, pausedQueueText])
 
-  const hasActiveFreebuffSession =
-    IS_FREEBUFF && freebuffSession?.status === 'active'
-  const isFreebuffSessionOver =
-    IS_FREEBUFF && freebuffSession?.status === 'ended'
+  const hasActiveFreebuffSession = false
+  const isFreebuffSessionOver = false
   const shouldShowStatusLine =
     !feedbackMode &&
     (hasStatusIndicatorContent ||
@@ -1463,7 +1461,7 @@ export const Chat = ({
           />
         )}
 
-        {ads && (IS_FREEBUFF || getAdsEnabled()) && (
+        {ads && getAdsEnabled() && (
           <ChoiceAdBanner ads={ads} onImpression={recordImpression} />
         )}
 

@@ -1,13 +1,5 @@
 import type { ToolName } from '@codebuff/sdk'
 
-import { getCliEnv } from './env'
-
-/**
- * Freebuff build-time flag. When true, the CLI is built as Freebuff (free-only variant).
- * Injected via --define at compile time; enables dead-code elimination by the bundler.
- */
-export const IS_FREEBUFF = getCliEnv().FREEBUFF_MODE === 'true'
-
 /** Message shown when the user ends a freebuff session early. */
 export const END_SESSION_MESSAGE =
   'Ending session and returning to the model picker…'
@@ -133,7 +125,7 @@ export const MAIN_AGENT_ID = 'main-agent'
  */
 export const AGENT_MODE_TO_ID = {
   DEFAULT: 'base2',
-  LITE: IS_FREEBUFF ? 'base2-free' : 'base2-lite',
+  LITE: 'base2-lite',
   MAX: 'base2-max',
   PLAN: 'base2-plan',
 } as const
@@ -150,7 +142,7 @@ export const AGENT_MODES = Object.keys(AGENT_MODE_TO_ID) as AgentMode[]
  */
 export const AGENT_MODE_TO_COST_MODE = {
   DEFAULT: 'normal',
-  LITE: IS_FREEBUFF ? 'free' : 'lite',
+  LITE: 'lite',
   MAX: 'max',
   PLAN: 'normal',
 } as const satisfies Record<

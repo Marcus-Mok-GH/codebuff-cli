@@ -1,6 +1,5 @@
 import { CHATGPT_OAUTH_ENABLED } from '@codebuff/common/constants/chatgpt-oauth'
-import { AGENT_MODES, IS_FREEBUFF } from '../utils/constants'
-import { getChatGptOAuthStatus } from '../utils/chatgpt-oauth'
+import { AGENT_MODES } from '../utils/constants'
 
 import type { SkillsMap } from '@codebuff/common/types/skill'
 
@@ -22,32 +21,13 @@ export interface SlashCommand {
   insertText?: string
 }
 
-// Generate mode commands from the AGENT_MODES constant (excluded in Freebuff)
-const MODE_COMMANDS: SlashCommand[] = IS_FREEBUFF
-  ? []
-  : AGENT_MODES.map((mode) => ({
-      id: `mode:${mode.toLowerCase()}`,
-      label: `mode:${mode.toLowerCase()}`,
-      description: `Switch to ${mode} mode`,
-      aliases: [`model:${mode.toLowerCase()}`],
-    }))
-
-const FREEBUFF_REMOVED_COMMAND_IDS = new Set([
-  'ads:enable',
-  'ads:disable',
-  'usage',
-  'subscribe',
-  'agent:gpt-5',
-  'image',
-  'publish',
-  'init',
-])
-
-const FREEBUFF_ONLY_COMMAND_IDS = new Set([
-  'connect',
-  'plan',
-  'end-session',
-])
+// Generate mode commands from the AGENT_MODES constant
+const MODE_COMMANDS: SlashCommand[] = AGENT_MODES.map((mode) => ({
+  id: `mode:${mode.toLowerCase()}`,
+  label: `mode:${mode.toLowerCase()}`,
+  description: `Switch to ${mode} mode`,
+  aliases: [`model:${mode.toLowerCase()}`],
+}))
 
 const ALL_SLASH_COMMANDS: SlashCommand[] = [
   {
@@ -149,7 +129,7 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
   {
     id: 'feedback',
     label: 'feedback',
-    description: IS_FREEBUFF ? 'Share general feedback about Freebuff' : 'Share general feedback about Codebuff',
+    description: 'Share general feedback about Codebuff',
   },
   {
     id: 'bash',
@@ -196,13 +176,7 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
   },
 ]
 
-export const SLASH_COMMANDS = IS_FREEBUFF
-  ? ALL_SLASH_COMMANDS.filter(
-      (cmd) => !FREEBUFF_REMOVED_COMMAND_IDS.has(cmd.id),
-    )
-  : ALL_SLASH_COMMANDS.filter(
-      (cmd) => !FREEBUFF_ONLY_COMMAND_IDS.has(cmd.id),
-    )
+export const SLASH_COMMANDS = ALL_SLASH_COMMANDS
 
 export const SLASHLESS_COMMAND_IDS = new Set(
   SLASH_COMMANDS.filter((cmd) => cmd.implicitCommand).map((cmd) =>
@@ -231,16 +205,5 @@ export function getSlashCommandsWithSkills(skills: SkillsMap): SlashCommand[] {
     description: truncateDescription(skill.description),
   }))
 
-  let commands = [...SLASH_COMMANDS, ...skillCommands]
-
-  if (IS_FREEBUFF && !getChatGptOAuthStatus().connected) {
-    commands = commands.map((cmd) => {
-      if (cmd.id === 'review' || cmd.id === 'plan') {
-        return { ...cmd, description: 'Connect required. ' + cmd.description }
-      }
-      return cmd
-    })
-  }
-
-  return commands
+  return [...SLASH_COMMANDS, ...skillCommands]
 }
