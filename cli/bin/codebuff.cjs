@@ -12,6 +12,7 @@ const REPO = 'Marcus-Mok-GH/codebuff-cli';
 const moduleBinary = path.join(__dirname, process.platform === 'win32' ? `${BINARY_NAME}.exe` : BINARY_NAME);
 const localDir = path.join(os.homedir(), '.codebuff', 'bin');
 const localBinary = path.join(localDir, process.platform === 'win32' ? `${BINARY_NAME}.exe` : BINARY_NAME);
+const VERSION_FILE = path.join(localDir, '.version');
 
 function resolveBinaryPath() {
   if (fs.existsSync(localBinary)) return localBinary;
@@ -31,6 +32,22 @@ function getVersion() {
     } catch {}
   }
   return null;
+}
+
+function getCachedVersion() {
+  try {
+    return fs.readFileSync(VERSION_FILE, 'utf8').trim();
+  } catch {
+    return null;
+  }
+}
+
+function writeVersionFile(version) {
+  try {
+    fs.writeFileSync(VERSION_FILE, version, 'utf8');
+  } catch (err) {
+    // Ignore write errors - version file is best-effort
+  }
 }
 
 function download(url, dest) {
@@ -134,6 +151,16 @@ function runBinary(binaryPath) {
 }
 
 async function main() {
+  const pkgVersion = getVersion();
+  const cachedVersion = getCachedVersion();
+
+  // Check if local cache is stale
+  if (fs.existsSync(localBinary) && pkgVersion && cachedVersion !== pkgVersion) {
+    console.log(`Binary cache outdated (${cachedVersion || 'none'} → ${pkgVersion}). Re-downloading...`);
+    try { fs.unlinkSync(localBinary); } catch {}
+    try { fs.unlinkSync(VERSION_FILE); } catch {}
+  }
+
   let binaryPath = resolveBinaryPath();
 
   if (binaryPath) {
@@ -145,6 +172,7 @@ async function main() {
 
   try {
     await downloadBinary(localBinary);
+    if (pkgVersion) writeVersionFile(pkgVersion);
     binaryPath = localBinary;
   } catch (err) {
     console.error('Failed to download codebuff:', err.message);

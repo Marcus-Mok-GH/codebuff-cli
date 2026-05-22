@@ -143,6 +143,13 @@ async function main() {
 
   if (await downloadWithRetry(url, binaryPath)) {
     console.log('Download complete.');
+    const versionFile = path.join(path.dirname(binaryPath), '.version');
+    try {
+      fs.writeFileSync(versionFile, version, 'utf8');
+      console.log('Version file written.');
+    } catch (err) {
+      console.warn('Warning: could not write version file:', err.message);
+    }
   } else {
     console.error('\nUnable to download the codebuff binary.');
     console.error('You can try installing manually from:');
