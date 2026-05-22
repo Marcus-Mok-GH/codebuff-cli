@@ -417,6 +417,7 @@ export type ModelName =
   // DeepSeek
   | 'deepseek/deepseek-v4-pro'
   | 'deepseek-v4-pro'
+  | 'accounts/fireworks/models/deepseek-v4-pro'
   | 'deepseek/deepseek-v4-flash'
   | 'deepseek-v4-flash'
   | 'deepseek/deepseek-chat-v3-0324'
@@ -428,8 +429,10 @@ export type ModelName =
   | 'moonshotai/kimi-k2'
   | 'moonshotai/kimi-k2:nitro'
   | 'moonshotai/kimi-k2.6'
+  | 'accounts/fireworks/models/kimi-k2p6'
   | 'z-ai/glm-5'
   | 'z-ai/glm-5.1'
+  | 'accounts/fireworks/models/glm-5p1'
   | 'z-ai/glm-4.6'
   | 'z-ai/glm-4.6:nitro'
   | 'z-ai/glm-4.7'
