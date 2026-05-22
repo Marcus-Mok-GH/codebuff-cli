@@ -54,8 +54,7 @@ export type openrouterModel =
   (typeof openrouterModels)[keyof typeof openrouterModels]
 
 export const openCodeZenModels = {
-  opencode_kimi_k2_6: 'opencode/kimi-k2.6',
-  opencode_minimax_m2_7: 'opencode/minimax-m2.7',
+  opencode_kimi_k2_6: 'accounts/fireworks/models/kimi-k2p6',
 } as const
 export type OpenCodeZenModel =
   (typeof openCodeZenModels)[keyof typeof openCodeZenModels]
@@ -64,7 +63,7 @@ export const deepseekModels = {
   deepseekChat: 'deepseek-chat',
   deepseekReasoner: 'deepseek-reasoner',
   deepseekV4ProDirect: 'deepseek-v4-pro',
-  deepseekV4Pro: 'deepseek/deepseek-v4-pro',
+  deepseekV4Pro: 'accounts/fireworks/models/deepseek-v4-pro',
   deepseekV4FlashDirect: 'deepseek-v4-flash',
   deepseekV4Flash: 'deepseek/deepseek-v4-flash',
 } as const
