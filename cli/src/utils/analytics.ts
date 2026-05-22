@@ -25,8 +25,6 @@ type AnalyticsErrorLogger = (
 /** Dependencies that can be injected for testing */
 export interface AnalyticsDeps {
   env: {
-    NEXT_PUBLIC_POSTHOG_API_KEY?: string
-    NEXT_PUBLIC_POSTHOG_HOST_URL?: string
   }
   isProd: boolean
   createClient: (apiKey: string, options: unknown) => unknown
