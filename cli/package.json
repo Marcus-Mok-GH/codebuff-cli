@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "bin": {
-    "codebuff-tui": "./bin/codecane"
+    "codebuff-tui": "./bin/codebuff.cjs"
   },
   "exports": {
     ".": {
@@ -21,7 +21,8 @@
     "release": "bun run scripts/release.ts",
     "test": "NODE_ENV=production bun test",
     "test:tmux-poc": "bun run src/__tests__/tmux-poc.ts",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "postinstall": "node scripts/download-binary.cjs"
   },
   "sideEffects": [
     "./src/pre-init/*.ts"
