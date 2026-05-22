@@ -35,3 +35,5 @@ docs/bot-detection.md
 # Exclude large downloaded binary (downloaded at install time by postinstall)
 cli/bin/codebuff
 cli/bin/codebuff.bak
+.npmrc
+cli/.npmrc
