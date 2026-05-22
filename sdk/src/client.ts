@@ -68,7 +68,7 @@ export class CodebuffClient {
     try {
       const response = await fetch(`${WEBSITE_URL}/api/healthz`, {
         method: 'GET',
-        signal: AbortSignal.timeout(5000), // 5 second timeout
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       })
 
       if (!response.ok) return false
@@ -80,7 +80,11 @@ export class CodebuffClient {
         'status' in result &&
         (result as { status?: unknown }).status === 'ok'
       )
-    } catch {
+    } catch (error) {
+      console.error(
+        `Connection check failed for ${WEBSITE_URL}/api/healthz:`,
+        error instanceof Error ? error.message : error,
+      )
       return false
     }
   }
