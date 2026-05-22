@@ -12,10 +12,6 @@ const ensureEnv = () => {
     process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://app.codebuff.test'
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL =
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@codebuff.test'
-  process.env.NEXT_PUBLIC_POSTHOG_API_KEY =
-    process.env.NEXT_PUBLIC_POSTHOG_API_KEY || 'phc_test_key'
-  process.env.NEXT_PUBLIC_POSTHOG_HOST_URL =
-    process.env.NEXT_PUBLIC_POSTHOG_HOST_URL || 'https://posthog.codebuff.test'
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_123'
   process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL =

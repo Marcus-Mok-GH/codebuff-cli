@@ -1,8 +1,20 @@
 {
   "name": "codebuff-cli",
   "version": "1.0.0",
-  "private": true,
   "license": "Apache-2.0",
+  "bin": {
+    "codebuff": "cli/bin/codebuff",
+    "codebuff-cli": "cli/bin/codebuff"
+  },
+  "files": [
+    "cli/bin",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "workspaces": [
     ".agents",
