@@ -14,11 +14,11 @@ describe('CodebuffClient', () => {
   })
 
   describe('checkConnection', () => {
-    test('returns true when healthz responds with status ok', async () => {
+    test('returns true when /api/models responds with an array', async () => {
       const mockFetch = mock(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ status: 'ok' }),
+          json: () => Promise.resolve([{ id: 'model-1', name: 'Model 1' }]),
         } as Response),
       )
 
@@ -35,7 +35,7 @@ describe('CodebuffClient', () => {
       const mockFetch = mock(() =>
         Promise.resolve({
           ok: false,
-          json: () => Promise.resolve({ status: 'ok' }),
+          json: () => Promise.resolve([{ id: 'model-1' }]),
         } as Response),
       )
 
@@ -48,11 +48,11 @@ describe('CodebuffClient', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
 
-    test('returns false when status is not ok', async () => {
+    test('returns false when /api/models responds with a non-array', async () => {
       const mockFetch = mock(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ status: 'error' }),
+          json: () => Promise.resolve({ status: 'ok' }),
         } as Response),
       )
 
@@ -91,11 +91,11 @@ describe('CodebuffClient', () => {
       expect(result).toBe(false)
     })
 
-    test('returns false when response body is not an object', async () => {
+    test('returns false when response body is a string', async () => {
       const mockFetch = mock(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve('not an object'),
+          json: () => Promise.resolve('not an array'),
         } as Response),
       )
 
@@ -123,7 +123,7 @@ describe('CodebuffClient', () => {
       expect(result).toBe(false)
     })
 
-    test('returns false when response body has no status field', async () => {
+    test('returns false when response body is an object with a message field', async () => {
       const mockFetch = mock(() =>
         Promise.resolve({
           ok: true,

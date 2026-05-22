@@ -56,13 +56,13 @@ export class CodebuffClient {
   }
 
   /**
-   * Check connection to the Codebuff backend by hitting the /healthz endpoint.
+   * Check connection to the Codebuff backend by hitting the /api/models endpoint.
    *
    * @returns Promise that resolves to true if connected, false otherwise
    */
   public async checkConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${WEBSITE_URL}/api/healthz`, {
+      const response = await fetch(`${WEBSITE_URL}/api/models`, {
         method: 'GET',
         signal: AbortSignal.timeout(10000), // 10 second timeout
       })
@@ -70,15 +70,10 @@ export class CodebuffClient {
       if (!response.ok) return false
 
       const result = await response.json()
-      return (
-        typeof result === 'object' &&
-        result !== null &&
-        'status' in result &&
-        (result as { status?: unknown }).status === 'ok'
-      )
+      return Array.isArray(result)
     } catch (error) {
       console.error(
-        `Connection check failed for ${WEBSITE_URL}/api/healthz:`,
+        `Connection check failed for ${WEBSITE_URL}/api/models:`,
         error instanceof Error ? error.message : error,
       )
       return false
