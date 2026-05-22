@@ -15,10 +15,7 @@ export async function flushAnalytics(logger?: Logger) {
   try {
     await client.flush()
   } catch (error) {
-    // Log the error but don't throw - flushing is best-effort
     logger?.warn({ error }, 'Failed to flush analytics')
-
-    // Track the flush failure event (will be queued for next successful flush)
     try {
       client.capture({
         distinctId: 'system',
@@ -28,7 +25,7 @@ export async function flushAnalytics(logger?: Logger) {
         },
       })
     } catch {
-      // Silently ignore if we can't even track the failure
+      // silently ignore
     }
   }
 }
@@ -56,7 +53,6 @@ export function trackEvent({
   properties?: Record<string, any>
   logger: Logger
 }) {
-  // Don't track events in non-production environments
   if (env.NEXT_PUBLIC_CB_ENVIRONMENT !== 'prod') {
     if (DEBUG_ANALYTICS) {
       logger.debug({ event, userId, properties }, `[analytics] ${event}`)
@@ -65,15 +61,9 @@ export function trackEvent({
   }
 
   if (!client) {
-    const apiKey = env.NEXT_PUBLIC_POSTHOG_API_KEY
-    const hostUrl = env.NEXT_PUBLIC_POSTHOG_HOST_URL
-    if (!apiKey || !hostUrl) {
-      logger.warn('Analytics skipped: missing PostHog API key or host URL')
-      return
-    }
     try {
-      client = createPostHogClient(apiKey, {
-        host: hostUrl,
+      client = createPostHogClient('', {
+        host: '',
         flushAt: 1,
         flushInterval: 0,
       })

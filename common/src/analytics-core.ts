@@ -1,12 +1,10 @@
-import { PostHog } from 'posthog-node'
-
 /**
- * Shared analytics core module.
- * Provides common interfaces, types, and utilities used by both
- * server-side (common/src/analytics.ts) and CLI (cli/src/utils/analytics.ts) analytics.
+ * Shared analytics core module (no-op stub).
+ * PostHog has been removed. This module preserves the interface
+ * so dependent code can still import and compile.
  */
 
-/** Interface for PostHog client methods used for event capture */
+/** Interface for analytics client methods used for event capture */
 export interface AnalyticsClient {
   capture: (params: {
     distinctId: string
@@ -16,13 +14,12 @@ export interface AnalyticsClient {
   flush: () => Promise<void>
 }
 
-/** Extended client interface with identify, alias, and exception capture (used by CLI) */
+/** Extended client interface with identify, alias, and exception capture */
 export interface AnalyticsClientWithIdentify extends AnalyticsClient {
   identify: (params: {
     distinctId: string
     properties?: Record<string, any>
   }) => void
-  /** Links an alias (previous anonymous ID) to a distinctId (real user ID) */
   alias: (data: { distinctId: string; alias: string }) => void
   captureException: (
     error: any,
@@ -50,19 +47,24 @@ export interface PostHogClientOptions {
 }
 
 /**
- * Default PostHog client factory.
- * Creates a real PostHog client instance.
+ * No-op PostHog client factory.
+ * Returns a mock object that does nothing.
  */
 export function createPostHogClient(
-  apiKey: string,
-  options: PostHogClientOptions,
+  _apiKey: string,
+  _options: PostHogClientOptions,
 ): AnalyticsClientWithIdentify {
-  return new PostHog(apiKey, options) as AnalyticsClientWithIdentify
+  return {
+    capture: () => {},
+    flush: async () => {},
+    identify: () => {},
+    alias: () => {},
+    captureException: () => {},
+  }
 }
 
 /**
  * Generates a unique anonymous ID for pre-login tracking.
- * Uses crypto.randomUUID() for uniqueness.
  */
 export function generateAnonymousId(): string {
   return `anon_${crypto.randomUUID()}`

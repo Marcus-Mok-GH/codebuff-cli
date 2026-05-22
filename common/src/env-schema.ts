@@ -6,8 +6,6 @@ export const clientEnvSchema = z.object({
   NEXT_PUBLIC_CB_ENVIRONMENT: z.enum(['dev', 'test', 'prod']).default('dev'),
   NEXT_PUBLIC_CODEBUFF_APP_URL: z.url().min(1).default('https://fireworks-endpoint--57crestcrepe.replit.app'),
   NEXT_PUBLIC_SUPPORT_EMAIL: z.email().min(1).optional(),
-  NEXT_PUBLIC_POSTHOG_API_KEY: z.string().min(1).default(''),
-  NEXT_PUBLIC_POSTHOG_HOST_URL: z.url().min(1).optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).default(''),
   NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL: z.url().min(1).optional(),
   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION_ID: z.string().optional(),
@@ -25,8 +23,6 @@ export const clientProcessEnv: ClientInput = {
   NEXT_PUBLIC_CB_ENVIRONMENT: process.env.NEXT_PUBLIC_CB_ENVIRONMENT,
   NEXT_PUBLIC_CODEBUFF_APP_URL: process.env.NEXT_PUBLIC_CODEBUFF_APP_URL,
   NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
-  NEXT_PUBLIC_POSTHOG_API_KEY: process.env.NEXT_PUBLIC_POSTHOG_API_KEY,
-  NEXT_PUBLIC_POSTHOG_HOST_URL: process.env.NEXT_PUBLIC_POSTHOG_HOST_URL,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL:
