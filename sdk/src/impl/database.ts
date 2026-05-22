@@ -100,7 +100,7 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
 ): GetUserInfoFromApiKeyOutput<T> {
   const { apiKey, fields, logger } = params
 
-  const cached = userInfoCache[apiKey]
+  const cached = userInfoCache[apiKey ?? '']
   if (cached === null) {
     throw createAuthError()
   }
@@ -133,7 +133,7 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
       },
       logger,
@@ -153,7 +153,7 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
       'getUserInfoFromApiKey authentication failed',
     )
     // Don't cache auth failures - allow retry with potentially updated credentials
-    delete userInfoCache[apiKey]
+    delete userInfoCache[apiKey ?? '']
     // If the server returns 404 for invalid credentials, surface as 401 to callers
     const normalizedStatus = response.status === 404 ? 401 : response.status
     throw createHttpError('Authentication failed', normalizedStatus)
@@ -175,11 +175,11 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
     throw createHttpError('Request failed', response.status)
   }
 
-  const cachedBeforeMerge = userInfoCache[apiKey]
+  const cachedBeforeMerge = userInfoCache[apiKey ?? '']
   try {
     const responseBody = await response.json()
     const fetchedFields = responseBody as CachedUserInfo
-    userInfoCache[apiKey] = {
+    userInfoCache[apiKey ?? ''] = {
       ...(cachedBeforeMerge ?? {}),
       ...fetchedFields,
     }
@@ -191,7 +191,7 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
     throw createHttpError('Failed to parse response', response.status)
   }
 
-  const userInfo = userInfoCache[apiKey]
+  const userInfo = userInfoCache[apiKey ?? '']
   if (userInfo === null) {
     throw createAuthError()
   }
@@ -229,7 +229,7 @@ export async function fetchAgentFromDatabase(
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
       },
       logger,
@@ -312,7 +312,7 @@ export async function startAgentRun(
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
           action: 'START',
@@ -366,7 +366,7 @@ export async function finishAgentRun(
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
           action: 'FINISH',
@@ -416,7 +416,7 @@ export async function addAgentStep(
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
           stepNumber,
