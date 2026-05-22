@@ -10,7 +10,7 @@ const BINARY_NAME = 'codebuff';
 const REPO = 'Marcus-Mok-GH/codebuff-cli';
 
 const moduleBinary = path.join(__dirname, process.platform === 'win32' ? `${BINARY_NAME}.exe` : BINARY_NAME);
-const localDir = path.join(os.homedir(), '.codebuff');
+const localDir = path.join(os.homedir(), '.codebuff', 'bin');
 const localBinary = path.join(localDir, process.platform === 'win32' ? `${BINARY_NAME}.exe` : BINARY_NAME);
 
 function resolveBinaryPath() {

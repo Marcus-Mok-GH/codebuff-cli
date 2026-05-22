@@ -44,9 +44,9 @@
     },
     "cli": {
       "name": "@codebuff/cli",
-      "version": "1.0.0",
+      "version": "1.0.11",
       "bin": {
-        "codebuff-tui": "./bin/codecane",
+        "codebuff-tui": "./bin/codebuff.cjs",
       },
       "dependencies": {
         "@codebuff/sdk": "workspace:*",
@@ -60,7 +60,6 @@
         "node-machine-id": "^1.1.12",
         "open": "^10.1.0",
         "pino": "9.4.0",
-        "posthog-node": "^5.8.0",
         "react": "^19.0.0",
         "react-reconciler": "^0.32.0",
         "remark-breaks": "^4.0.0",
@@ -98,7 +97,6 @@
         "next-auth": "^4.24.11",
         "partial-json": "^0.1.7",
         "pg": "^8.14.1",
-        "posthog-node": "^5.8.0",
         "readable-stream": "^4.7.0",
         "seedrandom": "^3.0.5",
         "stripe": "^16.11.0",
@@ -609,8 +607,6 @@
     "@panva/hkdf": ["@panva/hkdf@1.2.1", "", {}, "sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw=="],
 
     "@playwright/test": ["@playwright/test@1.56.1", "", { "dependencies": { "playwright": "1.56.1" }, "bin": { "playwright": "cli.js" } }, "sha512-vSMYtL/zOcFpvJCW71Q/OEGQb7KYBPAdKh35WNSkaZA75JlAO8ED8UN6GUNTm3drWomcbcqRPFqQbLae8yBTdg=="],
-
-    "@posthog/core": ["@posthog/core@1.5.0", "", {}, "sha512-oxfV20QMNwH30jKybUyqi3yGuMghULQz1zkJgQG3rjpHDxhD2vDN6E7UpmaqgphMIvGG3Q+DgfU10zfSPA7w7w=="],
 
     "@rtsao/scc": ["@rtsao/scc@1.1.0", "", {}, "sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g=="],
 
@@ -1677,8 +1673,6 @@
     "postgres-date": ["postgres-date@1.0.7", "", {}, "sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q=="],
 
     "postgres-interval": ["postgres-interval@1.2.0", "", { "dependencies": { "xtend": "^4.0.0" } }, "sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ=="],
-
-    "posthog-node": ["posthog-node@5.11.0", "", { "dependencies": { "@posthog/core": "1.5.0" } }, "sha512-9+gmWp/7AEryJMi0+/ywJjKQhpkmcjxf+eT030fTIIPvFTF84zeeagdZBGNC/Nh2Jc0grIAW6O1n5lxXiX3daA=="],
 
     "preact": ["preact@10.27.2", "", {}, "sha512-5SYSgFKSyhCbk6SrXyMpqjb5+MQBgfvEKE/OC+PujcY34sOpqtr+0AZQtPYx5IA6VxynQ7rUPCtKzyovpj9Bpg=="],
 

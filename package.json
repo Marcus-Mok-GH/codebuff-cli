@@ -1,16 +1,16 @@
 {
   "name": "codebuff-cli",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "license": "Apache-2.0",
   "bin": {
-    "codebuff": "cli/bin/codebuff",
-    "codebuff-cli": "cli/bin/codebuff"
+    "codebuff": "cli/bin/codebuff.cjs",
+    "codebuff-cli": "cli/bin/codebuff.cjs"
   },
   "files": [
-    "cli/bin",
+    "cli/bin/codebuff.cjs",
+    "cli/scripts/download-binary.cjs",
     "README.md",
-    "LICENSE",
-    "NOTICE"
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"

@@ -23,7 +23,7 @@ function getVersion() {
 }
 
 function getBinaryPath() {
-  const binDir = path.join(os.homedir(), '.codebuff');
+  const binDir = path.join(os.homedir(), '.codebuff', 'bin');
   const name = process.platform === 'win32' ? `${BINARY_NAME}.exe` : BINARY_NAME;
   return path.join(binDir, name);
 }
