@@ -5,7 +5,7 @@ import { createReviewer } from './code-reviewer'
 const definition: SecretAgentDefinition = {
   id: 'code-reviewer-deepseek',
   publisher,
-  ...createReviewer('deepseek/deepseek-v4-pro'),
+  ...createReviewer('accounts/fireworks/models/deepseek-v4-pro'),
 }
 
 export default definition
