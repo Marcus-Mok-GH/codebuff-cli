@@ -1,7 +1,5 @@
-import { CHATGPT_OAUTH_ENABLED } from '@codebuff/common/constants/chatgpt-oauth'
 import React from 'react'
 
-import { ChatGptConnectBanner } from './chatgpt-connect-banner'
 import { HelpBanner } from './help-banner'
 import { PendingAttachmentsBanner } from './pending-attachments-banner'
 import { SubscriptionLimitBanner } from './subscription-limit-banner'
@@ -26,9 +24,6 @@ const BANNER_REGISTRY: Record<
   usage: ({ showTime }: { showTime: number }) => <UsageBanner showTime={showTime} />,
   help: () => <HelpBanner />,
   subscriptionLimit: () => <SubscriptionLimitBanner />,
-  ...(CHATGPT_OAUTH_ENABLED
-    ? { 'connect:chatgpt': () => <ChatGptConnectBanner /> }
-    : {}),
 }
 
 /**

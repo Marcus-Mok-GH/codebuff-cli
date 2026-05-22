@@ -99,32 +99,32 @@ export const Chat = ({
   agentId,
   fileTree,
   inputRef,
-  setIsAuthenticated,
-  setUser,
-  logoutMutation,
+  setIsAuthenticated = () => {},
+  setUser = () => {},
+  logoutMutation = { mutate: () => {} } as UseMutationResult<boolean, Error, void, unknown>,
   continueChat,
   continueChatId,
-  authStatus,
+  authStatus = 'ok',
   initialMode,
   gitRoot,
   onSwitchToGitRoot,
-  freebuffSession,
+  freebuffSession = null,
 }: {
   headerContent: React.ReactNode
   initialPrompt: string | null
   agentId?: string
   fileTree: FileTreeNode[]
   inputRef: React.MutableRefObject<MultilineInputHandle | null>
-  setIsAuthenticated: Dispatch<SetStateAction<boolean | null>>
-  setUser: Dispatch<SetStateAction<User | null>>
-  logoutMutation: UseMutationResult<boolean, Error, void, unknown>
+  setIsAuthenticated?: Dispatch<SetStateAction<boolean | null>>
+  setUser?: Dispatch<SetStateAction<User | null>>
+  logoutMutation?: UseMutationResult<boolean, Error, void, unknown>
   continueChat: boolean
   continueChatId?: string
-  authStatus: AuthStatus
+  authStatus?: AuthStatus
   initialMode?: AgentMode
   gitRoot?: string | null
   onSwitchToGitRoot?: () => void
-  freebuffSession: FreebuffSessionResponse | null
+  freebuffSession?: FreebuffSessionResponse | null
 }) => {
   const [forceFileOnlyMentions, setForceFileOnlyMentions] = useState(false)
 

@@ -4,7 +4,6 @@ import { BottomBanner } from './bottom-banner'
 import { useSubscriptionQuery } from '../hooks/use-subscription-query'
 import { useTheme } from '../hooks/use-theme'
 import { useChatStore } from '../state/chat-store'
-import { getChatGptOAuthStatus } from '../utils/chatgpt-oauth'
 
 const HELP_TIMEOUT = 60 * 1000 // 60 seconds
 
@@ -37,7 +36,6 @@ export const HelpBanner = () => {
   const theme = useTheme()
   const { data: subscriptionData } = useSubscriptionQuery()
   const hasSubscription = subscriptionData?.hasSubscription ?? false
-  const chatGptOAuth = getChatGptOAuthStatus()
 
   // Auto-hide after timeout
   React.useEffect(() => {

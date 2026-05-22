@@ -1,4 +1,3 @@
-import { CHATGPT_OAUTH_ENABLED } from '@codebuff/common/constants/chatgpt-oauth'
 import { AGENT_MODES } from '../utils/constants'
 
 import type { SkillsMap } from '@codebuff/common/types/skill'
@@ -37,17 +36,6 @@ const ALL_SLASH_COMMANDS: SlashCommand[] = [
     aliases: ['h', '?'],
     implicitCommand: true,
   },
-  ...(CHATGPT_OAUTH_ENABLED
-    ? [
-        {
-          id: 'connect',
-          label: 'connect',
-          description: 'Connect your ChatGPT account',
-          aliases: ['connect:chatgpt', 'chatgpt'],
-        },
-      ]
-    : []),
-
   {
     id: 'ads:enable',
     label: 'ads:enable',

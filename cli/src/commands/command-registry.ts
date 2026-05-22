@@ -1,4 +1,3 @@
-import { CHATGPT_OAUTH_ENABLED } from '@codebuff/common/constants/chatgpt-oauth'
 import { safeOpen } from '../utils/open-url'
 
 import { handleAdsEnable, handleAdsDisable } from './ads'
@@ -14,7 +13,6 @@ import { WEBSITE_URL } from '../login/constants'
 import { useChatStore } from '../state/chat-store'
 import { useFeedbackStore } from '../state/feedback-store'
 import { useLoginStore } from '../state/login-store'
-import { getChatGptOAuthStatus } from '../utils/chatgpt-oauth'
 import { AGENT_MODES, END_SESSION_MESSAGE } from '../utils/constants'
 import { getSystemMessage, getUserMessage } from '../utils/message-history'
 import { capturePendingAttachments } from '../utils/pending-attachments'
@@ -437,19 +435,6 @@ const ALL_COMMANDS: CommandDefinition[] = [
       // Don't save to history - this is just a UI shortcut
     },
   }),
-  ...(CHATGPT_OAUTH_ENABLED
-    ? [
-        defineCommand({
-          name: 'connect',
-          aliases: ['connect:chatgpt', 'chatgpt'],
-          handler: (params) => {
-            useChatStore.getState().setInputMode('connect:chatgpt')
-            params.saveToHistory(params.inputValue.trim())
-            clearInput(params)
-          },
-        }),
-      ]
-    : []),
   defineCommand({
     name: 'history',
     aliases: ['chats'],

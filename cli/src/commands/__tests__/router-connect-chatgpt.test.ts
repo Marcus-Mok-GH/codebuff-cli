@@ -7,41 +7,28 @@ import type { RouterParams } from '../command-registry'
 const saveToHistory = mock(() => {})
 const setInputValue = mock(() => {})
 const setMessages = mock(() => {})
-const handleChatGptAuthCode = mock(async () => ({
-  success: true,
-  message: 'ok',
-}))
 
-mock.module('../../components/chatgpt-connect-banner', () => ({
-  handleChatGptAuthCode,
-}))
-
-mock.module('@codebuff/common/constants/chatgpt-oauth', () => ({
-  CHATGPT_OAUTH_ENABLED: true,
-}))
-
-describe('routeUserPrompt connect:chatgpt mode', () => {
+describe('routeUserPrompt connect:chatgpt mode (stubbed)', () => {
   beforeEach(() => {
     useChatStore.getState().reset()
     useChatStore.getState().setInputMode('connect:chatgpt')
     saveToHistory.mockClear()
     setInputValue.mockClear()
     setMessages.mockClear()
-    handleChatGptAuthCode.mockClear()
   })
 
   afterEach(() => {
     useChatStore.getState().reset()
   })
 
-  test('when in connect:chatgpt mode, it exchanges the auth code and updates messages', async () => {
+  test('when in connect:chatgpt mode, input mode is reset to default', async () => {
     const { routeUserPrompt } = await import('../router')
 
     const params = {
       abortControllerRef: { current: null },
       agentMode: 'DEFAULT',
       inputRef: { current: null },
-      inputValue: 'auth-code-123',
+      inputValue: '',
       isChainInProgressRef: { current: false },
       isStreaming: false,
       logoutMutation: {} as RouterParams['logoutMutation'],
@@ -62,8 +49,6 @@ describe('routeUserPrompt connect:chatgpt mode', () => {
 
     await routeUserPrompt(params)
 
-    expect(handleChatGptAuthCode).toHaveBeenCalledWith('auth-code-123')
-    expect(setMessages).toHaveBeenCalled()
     expect(useChatStore.getState().inputMode).toBe('default')
   })
 })

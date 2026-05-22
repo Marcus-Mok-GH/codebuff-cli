@@ -333,27 +333,11 @@ async function main(): Promise<void> {
   const queryClient = createQueryClient()
 
   const AppWithAsyncAuth = () => {
-    const [requireAuth, setRequireAuth] = React.useState<boolean | null>(null)
-    const [hasInvalidCredentials, setHasInvalidCredentials] =
-      React.useState(false)
     const [fileTree, setFileTree] = React.useState<FileTreeNode[]>([])
     const [currentProjectRoot, setCurrentProjectRoot] =
       React.useState(projectRoot)
     const [showProjectPickerScreen, setShowProjectPickerScreen] =
       React.useState(showProjectPicker)
-
-    React.useEffect(() => {
-      const apiKey = getAuthTokenDetails().token ?? ''
-
-      if (!apiKey) {
-        setRequireAuth(true)
-        setHasInvalidCredentials(false)
-        return
-      }
-
-      setHasInvalidCredentials(true)
-      setRequireAuth(false)
-    }, [])
 
     const loadFileTree = React.useCallback(async (root: string) => {
       try {
@@ -407,8 +391,6 @@ async function main(): Promise<void> {
       <App
         initialPrompt={initialPrompt}
         agentId={agent}
-        requireAuth={requireAuth}
-        hasInvalidCredentials={hasInvalidCredentials}
         fileTree={fileTree}
         continueChat={continueChat}
         continueChatId={continueId ?? undefined}
