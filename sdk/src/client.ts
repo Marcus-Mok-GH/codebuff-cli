@@ -52,11 +52,6 @@ export class CodebuffClient {
     options: RunOptions & CodebuffClientOptions,
   ): Promise<RunState> {
     const effectiveApiKey = options.apiKey ?? this.options.apiKey
-    if (!effectiveApiKey) {
-      throw new Error(
-        `Codebuff API key not found. Please provide an apiKey in the constructor of CodebuffClient or set the ${API_KEY_ENV_VAR} environment variable.`,
-      )
-    }
     return run({ ...this.options, ...options, apiKey: effectiveApiKey })
   }
 

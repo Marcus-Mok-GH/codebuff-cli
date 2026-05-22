@@ -79,7 +79,7 @@ export function resetChatGptOAuthRateLimit(): void {
  */
 export interface ModelRequestParams {
   /** Codebuff API key for backend authentication */
-  apiKey: string
+  apiKey?: string
   /** Model ID (OpenRouter format, e.g., "anthropic/claude-sonnet-4") */
   model: string
   /** If true, skip ChatGPT OAuth and use Codebuff backend (for fallback after rate limit) */
@@ -190,7 +190,7 @@ function createOpenAIOAuthModel(model: string, oauthToken: string): LanguageMode
  * This is the existing behavior - requests go to Codebuff backend which forwards to OpenRouter.
  */
 function createCodebuffBackendModel(
-  apiKey: string,
+  apiKey: string | undefined,
   model: string,
 ): LanguageModel {
   const openrouterUsage: OpenRouterUsageAccounting = {
@@ -207,7 +207,7 @@ function createCodebuffBackendModel(
     url: ({ path: endpoint }) =>
       new URL(path.join('/api/v1', endpoint), WEBSITE_URL).toString(),
     headers: () => ({
-      Authorization: `Bearer ${apiKey}`,
+      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
       'user-agent': `ai-sdk/openai-compatible/${VERSION}/codebuff`,
       ...(openrouterApiKey && { [BYOK_OPENROUTER_HEADER]: openrouterApiKey }),
     }),

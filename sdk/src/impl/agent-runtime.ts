@@ -27,7 +27,7 @@ const databaseAgentCache: DatabaseAgentCache = new Map()
 export function getAgentRuntimeImpl(
   params: {
     logger?: Logger
-    apiKey: string
+    apiKey?: string
     clientEnv?: ClientEnv
   } & Pick<
     AgentRuntimeScopedDeps,

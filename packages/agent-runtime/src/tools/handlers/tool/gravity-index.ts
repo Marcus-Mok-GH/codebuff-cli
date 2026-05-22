@@ -15,7 +15,7 @@ export const handleGravityIndex = (async (params: {
   previousToolCallFinished: Promise<void>
   toolCall: CodebuffToolCall<'gravity_index'>
   logger: Logger
-  apiKey: string
+  apiKey?: string
 
   agentStepId: string
   clientSessionId: string

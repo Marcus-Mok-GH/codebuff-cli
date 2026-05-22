@@ -165,7 +165,7 @@ const createAbortError = (signal?: AbortSignal) => {
 
 type RunExecutionOptions = RunOptions &
   CodebuffClientOptions & {
-    apiKey: string
+    apiKey?: string
     fingerprintId: string
   }
 type RunReturnType = RunState
