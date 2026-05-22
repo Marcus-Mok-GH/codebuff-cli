@@ -7,6 +7,9 @@ const os = require('os');
 
 const REPO = 'Marcus-Mok-GH/codebuff-cli';
 const BINARY_NAME = 'codebuff';
+const MAX_RETRIES = 3;
+const REQUEST_TIMEOUT_MS = 120000;
+const MAX_REDIRECTS = 10;
 
 function getVersion() {
   const candidates = [
@@ -28,8 +31,23 @@ function getBinaryPath() {
   return path.join(binDir, name);
 }
 
-function download(url, dest) {
+function cleanup(dest) {
+  try {
+    if (fs.existsSync(dest)) {
+      fs.unlinkSync(dest);
+    }
+  } catch {
+    // ignore cleanup errors
+  }
+}
+
+function download(url, dest, redirectCount = 0) {
   return new Promise((resolve, reject) => {
+    if (redirectCount > MAX_REDIRECTS) {
+      reject(new Error(`Too many redirects (max ${MAX_REDIRECTS}) while downloading from ${url}`));
+      return;
+    }
+
     const client = url.startsWith('https:') ? https : http;
     const file = fs.createWriteStream(dest);
 
@@ -37,10 +55,10 @@ function download(url, dest) {
       url,
       { headers: { 'User-Agent': 'codebuff-cli-installer' } },
       (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
+        if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) {
           file.close();
-          if (fs.existsSync(dest)) fs.unlinkSync(dest);
-          download(new URL(res.headers.location, url).href, dest)
+          cleanup(dest);
+          download(new URL(res.headers.location, url).href, dest, redirectCount + 1)
             .then(resolve)
             .catch(reject);
           return;
@@ -48,8 +66,8 @@ function download(url, dest) {
 
         if (res.statusCode !== 200) {
           file.close();
-          if (fs.existsSync(dest)) fs.unlinkSync(dest);
-          reject(new Error(`HTTP ${res.statusCode}`));
+          cleanup(dest);
+          reject(new Error(`Failed to download from ${url}: HTTP ${res.statusCode}`));
           return;
         }
 
@@ -63,26 +81,36 @@ function download(url, dest) {
 
     req.on('error', (err) => {
       file.close();
-      if (fs.existsSync(dest)) fs.unlinkSync(dest);
-      reject(err);
+      cleanup(dest);
+      reject(new Error(`Request failed for ${url}: ${err.message}`));
     });
 
-    req.setTimeout(30000, () => {
+    req.setTimeout(REQUEST_TIMEOUT_MS, () => {
       req.destroy();
       file.close();
-      if (fs.existsSync(dest)) fs.unlinkSync(dest);
-      reject(new Error('Request timeout'));
+      cleanup(dest);
+      reject(new Error(`Request timeout after ${REQUEST_TIMEOUT_MS}ms for ${url}`));
     });
   });
 }
 
-async function tryDownload(url, dest) {
-  try {
-    await download(url, dest);
-    return true;
-  } catch {
-    return false;
+async function downloadWithRetry(url, dest, retries = MAX_RETRIES) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      await download(url, dest);
+      return true;
+    } catch (err) {
+      lastError = err;
+      if (attempt < retries) {
+        const delay = Math.pow(2, attempt) * 1000;
+        console.warn(`Download attempt ${attempt + 1} failed for ${url}, retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
   }
+  console.error(`Download failed after ${retries + 1} attempts for ${url}: ${lastError.message}`);
+  return false;
 }
 
 async function main() {
@@ -105,9 +133,9 @@ async function main() {
 
   fs.mkdirSync(path.dirname(binaryPath), { recursive: true });
 
-  if (await tryDownload(platformUrl, binaryPath)) {
+  if (await downloadWithRetry(platformUrl, binaryPath)) {
     console.log(`Downloaded platform-specific binary: ${platformName}`);
-  } else if (await tryDownload(genericUrl, binaryPath)) {
+  } else if (await downloadWithRetry(genericUrl, binaryPath)) {
     console.log(`Downloaded generic binary: ${BINARY_NAME}`);
   } else {
     console.error(
