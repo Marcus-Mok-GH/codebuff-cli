@@ -1,7 +1,7 @@
 {
   "name": "@codebuff/cli",
-  "version": "1.0.12",
-  "private": true,
+  "version": "1.0.13",
+  "private": false,
   "type": "module",
   "bin": {
     "codebuff-tui": "./bin/codebuff.cjs"

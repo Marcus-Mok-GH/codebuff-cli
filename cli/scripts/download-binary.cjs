@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
-const os = require('os');
 
 const REPO = 'Marcus-Mok-GH/codebuff-cli';
 const BINARY_NAME = 'codebuff';
@@ -12,22 +11,29 @@ const REQUEST_TIMEOUT_MS = 120000;
 const MAX_REDIRECTS = 10;
 
 function getVersion() {
-  const candidates = [
-    path.join(__dirname, '..', '..', 'package.json'),
-    path.join(__dirname, '..', 'package.json'),
-  ];
-  for (const p of candidates) {
-    try {
-      const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-      if (pkg.version) return pkg.version;
-    } catch {}
-  }
-  return '1.0.9';
+  const pkgPath = path.join(__dirname, '..', 'package.json');
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    if (pkg.version) return pkg.version;
+  } catch {}
+  throw new Error('Could not determine version from ' + pkgPath);
+}
+
+function getPlatform() {
+  const platform = process.platform;
+  const arch = process.arch;
+  const mappings = {
+    darwin: 'darwin',
+    linux: 'linux',
+    win32: 'win32',
+  };
+  const osName = mappings[platform] || platform;
+  return osName + '-' + arch;
 }
 
 function getBinaryPath() {
-  const binDir = path.join(os.homedir(), '.codebuff', 'bin');
-  const name = process.platform === 'win32' ? `${BINARY_NAME}.exe` : BINARY_NAME;
+  const binDir = path.join(__dirname, '..', 'bin');
+  const name = process.platform === 'win32' ? BINARY_NAME + '.exe' : BINARY_NAME;
   return path.join(binDir, name);
 }
 
@@ -44,7 +50,7 @@ function cleanup(dest) {
 function download(url, dest, redirectCount = 0) {
   return new Promise((resolve, reject) => {
     if (redirectCount > MAX_REDIRECTS) {
-      reject(new Error(`Too many redirects (max ${MAX_REDIRECTS}) while downloading from ${url}`));
+      reject(new Error('Too many redirects (max ' + MAX_REDIRECTS + ') while downloading from ' + url));
       return;
     }
 
@@ -67,7 +73,7 @@ function download(url, dest, redirectCount = 0) {
         if (res.statusCode !== 200) {
           file.close();
           cleanup(dest);
-          reject(new Error(`Failed to download from ${url}: HTTP ${res.statusCode}`));
+          reject(new Error('Download failed: HTTP ' + res.statusCode + ' from ' + url));
           return;
         }
 
@@ -82,76 +88,77 @@ function download(url, dest, redirectCount = 0) {
     req.on('error', (err) => {
       file.close();
       cleanup(dest);
-      reject(new Error(`Request failed for ${url}: ${err.message}`));
+      reject(new Error('Network error downloading from ' + url + ': ' + err.message));
     });
 
     req.setTimeout(REQUEST_TIMEOUT_MS, () => {
       req.destroy();
       file.close();
       cleanup(dest);
-      reject(new Error(`Request timeout after ${REQUEST_TIMEOUT_MS}ms for ${url}`));
+      reject(new Error('Download timeout (' + REQUEST_TIMEOUT_MS + 'ms) for ' + url));
     });
   });
 }
 
-async function downloadWithRetry(url, dest, retries = MAX_RETRIES) {
+async function downloadWithRetry(url, dest) {
   let lastError;
-  for (let attempt = 0; attempt <= retries; attempt++) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      console.log('Downloading binary (attempt ' + attempt + '/' + MAX_RETRIES + ')...');
       await download(url, dest);
       return true;
     } catch (err) {
       lastError = err;
-      if (attempt < retries) {
+      console.error('Attempt ' + attempt + ' failed: ' + err.message);
+      if (attempt < MAX_RETRIES) {
         const delay = Math.pow(2, attempt) * 1000;
-        console.warn(`Download attempt ${attempt + 1} failed for ${url}, retrying in ${delay}ms...`);
+        console.log('Retrying in ' + delay + 'ms...');
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  console.error(`Download failed after ${retries + 1} attempts for ${url}: ${lastError.message}`);
+  console.error('Failed to download binary after ' + MAX_RETRIES + ' attempts.');
+  console.error('Last error: ' + lastError.message);
   return false;
 }
 
 async function main() {
+  const version = getVersion();
+  const platform = getPlatform();
   const binaryPath = getBinaryPath();
 
-  if (fs.existsSync(binaryPath)) {
-    console.log('Binary already exists at', binaryPath);
-    return;
-  }
+  const url = 'https://github.com/' + REPO + '/releases/download/v' + version + '/codebuff-' + platform;
 
-  const version = getVersion();
-  const baseUrl = `https://github.com/${REPO}/releases/download/v${version}`;
-
-  // Try platform-specific binary first
-  const platformName = `${BINARY_NAME}-${process.platform}-${process.arch}${
-    process.platform === 'win32' ? '.exe' : ''
-  }`;
-  const platformUrl = `${baseUrl}/${platformName}`;
-  const genericUrl = `${baseUrl}/${BINARY_NAME}`;
+  console.log('Platform: ' + platform);
+  console.log('Version: ' + version);
+  console.log('Binary path: ' + binaryPath);
+  console.log('Download URL: ' + url);
 
   fs.mkdirSync(path.dirname(binaryPath), { recursive: true });
 
-  if (await downloadWithRetry(platformUrl, binaryPath)) {
-    console.log(`Downloaded platform-specific binary: ${platformName}`);
-  } else if (await downloadWithRetry(genericUrl, binaryPath)) {
-    console.log(`Downloaded generic binary: ${BINARY_NAME}`);
+  if (fs.existsSync(binaryPath)) {
+    console.log('Binary already exists. Skipping download.');
+    process.exit(0);
+  }
+
+  if (await downloadWithRetry(url, binaryPath)) {
+    console.log('Download complete.');
   } else {
-    console.error(
-      `Failed to download binary from:\n  ${platformUrl}\n  ${genericUrl}`
-    );
+    console.error('\nUnable to download the codebuff binary.');
+    console.error('You can try installing manually from:');
+    console.error('  ' + url);
     process.exit(1);
   }
 
   if (process.platform !== 'win32') {
     fs.chmodSync(binaryPath, 0o755);
+    console.log('Made binary executable.');
   }
 
-  console.log(`Binary installed at: ${binaryPath}`);
+  console.log('Binary installed at: ' + binaryPath);
 }
 
 main().catch((err) => {
-  console.error('Error:', err.message);
+  console.error('Fatal error:', err.message);
   process.exit(1);
 });

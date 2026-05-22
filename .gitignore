@@ -31,3 +31,7 @@ docs/bot-detection.md
 
 # Infisical config (user-specific)
 .infisical.json
+
+# Exclude large downloaded binary (downloaded at install time by postinstall)
+cli/bin/codebuff
+cli/bin/codebuff.bak
