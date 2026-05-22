@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getCurrentChatId } from '../project-files'
-import { flushAnalytics } from '../utils/analytics'
 import { withTimeout } from '../utils/terminal-color-detection'
 
 import type { InputValue } from '../types/store'
@@ -38,7 +37,7 @@ function setupExitMessageHandler() {
 }
 
 function exitCli(): void {
-  withTimeout(flushAnalytics(), EXIT_FLUSH_TIMEOUT_MS, undefined).finally(
+  withTimeout(Promise.resolve(), EXIT_FLUSH_TIMEOUT_MS, undefined).finally(
     () => {
       process.exit(0)
     },
