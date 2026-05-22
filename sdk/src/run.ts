@@ -165,7 +165,7 @@ const createAbortError = (signal?: AbortSignal) => {
 
 type RunExecutionOptions = RunOptions &
   CodebuffClientOptions & {
-    apiKey: string
+    apiKey?: string
     fingerprintId: string
   }
 type RunReturnType = RunState
@@ -502,16 +502,32 @@ async function runOnce({
   const promptId = Math.random().toString(36).substring(2, 15)
 
   // Send input
-  const userInfo = await getUserInfoFromApiKey({
-    ...agentRuntimeImpl,
-    apiKey,
-    fields: ['id'],
-  })
-  if (!userInfo) {
-    return getCancelledRunState('Invalid API key or user not found')
+  let userId: string | undefined
+  if (apiKey === undefined) {
+    // No API key provided, proceed with undefined userId
+    userId = undefined
+  } else {
+    // API key provided, validate it
+    try {
+      const userInfo = await getUserInfoFromApiKey({
+        ...agentRuntimeImpl,
+        apiKey,
+        fields: ['id'],
+      })
+      if (!userInfo) {
+        return getCancelledRunState('Invalid API key or user not found')
+      }
+      userId = userInfo.id
+    } catch (error) {
+      // If API key was provided but getUserInfoFromApiKey threw an error,
+      // surface the error and cancel execution
+      const errorMessage =
+        error instanceof Error ? error.message : String(error ?? '')
+      return getCancelledRunState(
+        `Failed to validate API key: ${errorMessage}`,
+      )
+    }
   }
-
-  const userId = userInfo.id
 
   if (signal?.aborted) {
     return getCancelledRunState('Run cancelled by user.')

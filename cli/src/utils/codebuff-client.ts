@@ -53,7 +53,6 @@ export async function getCodebuffClient(): Promise<CodebuffClient | null> {
         {},
         `No authentication token found. Please run the login flow or set ${API_KEY_ENV_VAR}.`,
       )
-      return null
     }
 
     const projectRoot = getProjectRoot()

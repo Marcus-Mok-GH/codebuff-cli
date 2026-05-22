@@ -9,17 +9,12 @@ import type { RunState } from './run-state'
 
 export class CodebuffClient {
   public options: CodebuffClientOptions & {
-    apiKey: string
+    apiKey?: string
     fingerprintId: string
   }
 
   constructor(options: CodebuffClientOptions) {
     const foundApiKey = options.apiKey ?? getCodebuffApiKeyFromEnv()
-    if (!foundApiKey) {
-      throw new Error(
-        `Codebuff API key not found. Please provide an apiKey in the constructor of CodebuffClient or set the ${API_KEY_ENV_VAR} environment variable.`,
-      )
-    }
 
     this.options = {
       apiKey: foundApiKey,
@@ -56,7 +51,8 @@ export class CodebuffClient {
   public async run(
     options: RunOptions & CodebuffClientOptions,
   ): Promise<RunState> {
-    return run({ ...this.options, ...options })
+    const effectiveApiKey = options.apiKey ?? this.options.apiKey
+    return run({ ...this.options, ...options, apiKey: effectiveApiKey })
   }
 
   /**
