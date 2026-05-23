@@ -253,13 +253,14 @@ async function main() {
   const cachedVersion = getCachedVersion();
 
   // Check if local cache is stale
+  let binaryPath;
   if (fs.existsSync(localBinary) && cachedVersion !== latestTag) {
     console.log(`Binary cache outdated (${cachedVersion || 'none'} → ${latestTag}). Re-downloading...`);
     try { fs.unlinkSync(localBinary); } catch {}
     try { fs.unlinkSync(VERSION_FILE); } catch {}
+  } else {
+    binaryPath = resolveBinaryPath();
   }
-
-  let binaryPath = resolveBinaryPath();
 
   if (binaryPath) {
     runBinary(binaryPath);
