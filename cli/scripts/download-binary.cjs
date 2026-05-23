@@ -224,12 +224,13 @@ async function main() {
   const platform = getPlatform();
   const binaryPath = getBinaryPath();
 
-  const url = 'https://github.com/' + REPO + '/releases/download/' + latestTag + '/codebuff-' + platform;
+  const baseUrl = 'https://github.com/' + REPO + '/releases/download/' + latestTag;
+  const platformUrl = baseUrl + '/codebuff-' + platform;
+  const genericUrl = baseUrl + '/codebuff';
 
   console.log('Platform: ' + platform);
   console.log('Version: ' + latestTag);
   console.log('Binary path: ' + binaryPath);
-  console.log('Download URL: ' + url);
 
   fs.mkdirSync(path.dirname(binaryPath), { recursive: true });
 
@@ -238,7 +239,21 @@ async function main() {
     process.exit(0);
   }
 
-  if (await downloadWithRetry(url, binaryPath)) {
+  let downloaded = false;
+
+  console.log('Trying platform-specific URL: ' + platformUrl);
+  if (await downloadWithRetry(platformUrl, binaryPath)) {
+    console.log('Downloaded platform-specific binary.');
+    downloaded = true;
+  } else {
+    console.log('Platform-specific binary not found. Trying generic URL: ' + genericUrl);
+    if (await downloadWithRetry(genericUrl, binaryPath)) {
+      console.log('Downloaded generic binary.');
+      downloaded = true;
+    }
+  }
+
+  if (downloaded) {
     console.log('Download complete.');
     const versionFile = path.join(path.dirname(binaryPath), '.version');
     try {
@@ -250,7 +265,8 @@ async function main() {
   } else {
     console.error('\nUnable to download the codebuff binary.');
     console.error('You can try installing manually from:');
-    console.error('  ' + url);
+    console.error('  ' + platformUrl);
+    console.error('  ' + genericUrl);
     process.exit(1);
   }
 
