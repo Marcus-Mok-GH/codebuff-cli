@@ -205,7 +205,7 @@ function createCodebuffBackendModel(
   return new OpenAICompatibleChatLanguageModel(model, {
     provider: 'codebuff',
     url: ({ path: endpoint }) =>
-      new URL(path.join('/api/v1', endpoint), WEBSITE_URL).toString(),
+      new URL(path.join('/api', endpoint), WEBSITE_URL).toString(),
     headers: () => ({
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
       'user-agent': `ai-sdk/openai-compatible/${VERSION}/codebuff`,

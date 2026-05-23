@@ -62,7 +62,7 @@ export class CodebuffClient {
    */
   public async checkConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${WEBSITE_URL}/api/healthz`, {
+      const response = await fetch(`${WEBSITE_URL}/api/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(10000), // 10 second timeout
       })
@@ -78,7 +78,7 @@ export class CodebuffClient {
       )
     } catch (error) {
       console.error(
-        `Connection check failed for ${WEBSITE_URL}/api/healthz:`,
+        `Connection check failed for ${WEBSITE_URL}/api/health:`,
         error instanceof Error ? error.message : error,
       )
       return false
