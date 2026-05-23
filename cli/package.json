@@ -1,12 +1,14 @@
 {
   "name": "@codebuff/cli",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "private": false,
   "type": "module",
   "bin": {
     "codebuff": "bin/codebuff.cjs"
   },
-  "files": ["bin/"],
+  "files": [
+    "bin/"
+  ],
   "exports": {
     ".": {
       "bun": "./src/index.tsx",

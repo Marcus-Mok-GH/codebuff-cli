@@ -44,9 +44,9 @@
     },
     "cli": {
       "name": "@codebuff/cli",
-      "version": "1.0.11",
+      "version": "1.0.18",
       "bin": {
-        "codebuff-tui": "./bin/codebuff.cjs",
+        "codebuff": "bin/codebuff.cjs",
       },
       "dependencies": {
         "@codebuff/sdk": "workspace:*",
