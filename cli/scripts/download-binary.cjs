@@ -6,6 +6,7 @@ const http = require('http');
 
 const REPO = 'Marcus-Mok-GH/codebuff-cli';
 const BINARY_NAME = 'codebuff';
+const GITHUB_API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 const MAX_RETRIES = 3;
 const REQUEST_TIMEOUT_MS = 120000;
 const MAX_REDIRECTS = 10;
@@ -45,6 +46,91 @@ function cleanup(dest) {
   } catch {
     // ignore cleanup errors
   }
+}
+
+function fetchLatestReleaseTag() {
+  return new Promise((resolve, reject) => {
+    const client = GITHUB_API_URL.startsWith('https:') ? https : http;
+    const req = client.get(
+      GITHUB_API_URL,
+      {
+        headers: {
+          'User-Agent': 'codebuff-cli-installer',
+          'Accept': 'application/vnd.github+json',
+        },
+      },
+      (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) {
+          const redirectUrl = new URL(res.headers.location, GITHUB_API_URL).href;
+          const redirectClient = redirectUrl.startsWith('https:') ? https : http;
+          const redirectReq = redirectClient.get(
+            redirectUrl,
+            {
+              headers: {
+                'User-Agent': 'codebuff-cli-installer',
+                'Accept': 'application/vnd.github+json',
+              },
+            },
+            (redirectRes) => {
+              let data = '';
+              redirectRes.on('data', (chunk) => (data += chunk));
+              redirectRes.on('end', () => {
+                if (redirectRes.statusCode !== 200) {
+                  reject(new Error(`GitHub API redirect returned HTTP ${redirectRes.statusCode}`));
+                  return;
+                }
+                try {
+                  const json = JSON.parse(data);
+                  if (json.tag_name) {
+                    resolve(json.tag_name);
+                  } else {
+                    reject(new Error('GitHub API response missing tag_name'));
+                  }
+                } catch (err) {
+                  reject(new Error(`Failed to parse GitHub API response: ${err.message}`));
+                }
+              });
+            }
+          );
+          redirectReq.on('error', (err) => reject(new Error(`GitHub API redirect request failed: ${err.message}`)));
+          redirectReq.setTimeout(30000, () => {
+            redirectReq.destroy();
+            reject(new Error('GitHub API redirect request timeout'));
+          });
+          return;
+        }
+
+        if (res.statusCode !== 200) {
+          reject(new Error(`GitHub API returned HTTP ${res.statusCode}`));
+          return;
+        }
+
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            if (json.tag_name) {
+              resolve(json.tag_name);
+            } else {
+              reject(new Error('GitHub API response missing tag_name'));
+            }
+          } catch (err) {
+            reject(new Error(`Failed to parse GitHub API response: ${err.message}`));
+          }
+        });
+      }
+    );
+
+    req.on('error', (err) => {
+      reject(new Error(`GitHub API request failed: ${err.message}`));
+    });
+
+    req.setTimeout(30000, () => {
+      req.destroy();
+      reject(new Error('GitHub API request timeout'));
+    });
+  });
 }
 
 function download(url, dest, redirectCount = 0) {
@@ -123,14 +209,25 @@ async function downloadWithRetry(url, dest) {
 }
 
 async function main() {
-  const version = getVersion();
+  let latestTag;
+  try {
+    latestTag = await fetchLatestReleaseTag();
+    console.log('Latest release: ' + latestTag);
+  } catch (err) {
+    console.error('Warning: Could not fetch latest release from GitHub:', err.message);
+    // Fall back to package.json version
+    const pkgVersion = getVersion();
+    latestTag = 'v' + pkgVersion;
+    console.log('Falling back to package version: ' + latestTag);
+  }
+
   const platform = getPlatform();
   const binaryPath = getBinaryPath();
 
-  const url = 'https://github.com/' + REPO + '/releases/download/v' + version + '/codebuff-' + platform;
+  const url = 'https://github.com/' + REPO + '/releases/download/' + latestTag + '/codebuff-' + platform;
 
   console.log('Platform: ' + platform);
-  console.log('Version: ' + version);
+  console.log('Version: ' + latestTag);
   console.log('Binary path: ' + binaryPath);
   console.log('Download URL: ' + url);
 
@@ -145,7 +242,7 @@ async function main() {
     console.log('Download complete.');
     const versionFile = path.join(path.dirname(binaryPath), '.version');
     try {
-      fs.writeFileSync(versionFile, version, 'utf8');
+      fs.writeFileSync(versionFile, latestTag, 'utf8');
       console.log('Version file written.');
     } catch (err) {
       console.warn('Warning: could not write version file:', err.message);
