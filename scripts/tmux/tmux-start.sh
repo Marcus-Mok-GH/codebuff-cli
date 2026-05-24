@@ -207,7 +207,7 @@ elif [[ -n "$BINARY_PATH" ]]; then
         output_error "Binary not executable: $BINARY_PATH. Fix with: chmod +x '$BINARY_PATH'"
         exit 1
     fi
-    CLI_CMD="cd '$PROJECT_ROOT' && '$BINARY_PATH' 2>&1"
+    CLI_CMD="cd '$PROJECT_ROOT' && NODE_TLS_REJECT_UNAUTHORIZED=0 '$BINARY_PATH' 2>&1"
     CLI_MODE="binary"
     CLI_DISPLAY="$BINARY_PATH"
 else

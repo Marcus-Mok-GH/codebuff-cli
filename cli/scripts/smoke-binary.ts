@@ -85,7 +85,7 @@ function runTreeSitterSmoke(binary: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const proc = spawn(binary, ['--smoke-tree-sitter'], {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, NO_COLOR: '1', TERM: 'dumb' },
+      env: { ...process.env, NO_COLOR: '1', TERM: 'dumb', NODE_TLS_REJECT_UNAUTHORIZED: '0' },
     })
 
     let captured = ''
@@ -138,7 +138,7 @@ async function main(): Promise<void> {
 
   const proc = spawn(binary, [], {
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, NO_COLOR: '1', TERM: 'dumb' },
+    env: { ...process.env, NO_COLOR: '1', TERM: 'dumb', NODE_TLS_REJECT_UNAUTHORIZED: '0' },
   })
 
   let captured = ''

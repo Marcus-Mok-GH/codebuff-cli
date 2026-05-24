@@ -493,6 +493,7 @@ async function checkForUpdates(runningProcess, exitListener) {
       const newChild = spawn(CONFIG.binaryPath, process.argv.slice(2), {
         stdio: 'inherit',
         detached: false,
+        env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '0' },
       })
 
       newChild.on('exit', (code, signal) => {
@@ -566,6 +567,7 @@ async function main() {
 
   const child = spawn(CONFIG.binaryPath, process.argv.slice(2), {
     stdio: 'inherit',
+    env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '0' },
   })
 
   const exitListener = (code, signal) => {

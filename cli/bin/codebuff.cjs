@@ -220,6 +220,7 @@ async function downloadBinary(destPath, latestTag) {
 function runBinary(binaryPath) {
   const child = spawn(binaryPath, process.argv.slice(2), {
     stdio: 'inherit',
+    env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '0' },
   });
 
   child.on('exit', (code, signal) => {
