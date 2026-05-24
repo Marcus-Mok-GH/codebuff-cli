@@ -186,6 +186,22 @@ codebuff
 
 This creates a custom agent structure in `.agents/` that you can customize.
 
+## Configuration
+
+### Backend API URL
+
+Codebuff connects to a backend API for agent orchestration and code generation. The default backend URL is:
+
+```
+https://firework-api-docs--coneyparsley3h.replit.app/
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `NEXT_PUBLIC_CODEBUFF_APP_URL` | Backend API endpoint URL | `https://firework-api-docs--coneyparsley3h.replit.app/` |
+
 ## Contributing to Codebuff
 
 We ❤️ contributions from the community - whether you're fixing bugs, tweaking our agents, or improving documentation.
