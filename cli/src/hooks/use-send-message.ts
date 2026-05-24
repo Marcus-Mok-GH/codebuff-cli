@@ -299,12 +299,11 @@ export const useSendMessage = ({
           const errorsToAttach =
             validationResult.errors.length === 0
               ? [
-                  // Hide this for now, as validate endpoint may be flaky and we don't want to bother users.
-                  // {
-                  //   id: NETWORK_ERROR_ID,
-                  //   message:
-                  //     'Agent validation failed. This may be due to a network issue or temporary server problem. Please try again.',
-                  // },
+                  {
+                    id: NETWORK_ERROR_ID,
+                    message:
+                      'Agent validation failed. This may be due to a network issue or temporary server problem. Please try again.',
+                  },
                 ]
               : validationResult.errors
 

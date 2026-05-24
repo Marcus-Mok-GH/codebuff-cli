@@ -502,5 +502,9 @@ export const createEventHandler =
       .with({ type: 'tool_call' }, (e) => handleToolCall(state, e))
       .with({ type: 'tool_result' }, (e) => handleToolResult(state, e))
       .with({ type: 'finish' }, (e) => handleFinish(state, e))
+      .with({ type: 'error' }, (e) => {
+        state.logger.error({ error: e.message }, 'SDK error event received')
+        state.message.updater.setError(e.message)
+      })
       .otherwise(() => undefined)
   }
