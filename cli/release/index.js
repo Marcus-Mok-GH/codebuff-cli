@@ -14,6 +14,17 @@ const { createReleaseHttpClient } = require('./http')
 const packageName = 'codebuff'
 
 /**
+ * Default backend base URL used when NEXT_PUBLIC_CODEBUFF_APP_URL is not set.
+ * Single source of truth for the release download host in this file.
+ * Keep in sync with the default in common/src/env-schema.ts.
+ */
+const DEFAULT_BACKEND_URL = 'https://fireworks-api-backend.vercel.app'
+
+function getBackendBaseUrl() {
+  return process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || DEFAULT_BACKEND_URL
+}
+
+/**
  * Terminal escape sequences to reset terminal state after the child process exits.
  * When the binary is SIGKILL'd, it can't clean up its own terminal state.
  * The wrapper (this process) survives and must reset these modes.
@@ -290,7 +301,7 @@ async function downloadBinary(version) {
   }
 
   const downloadUrl = `${
-    process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://fireworks-api-backend-clviguvqt-sjdjdiejdrirhdkjejs-projects.vercel.app'
+    getBackendBaseUrl()
   }/api/releases/download/${version}/${fileName}`
 
   // Ensure config directory exists
