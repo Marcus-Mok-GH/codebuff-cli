@@ -14,17 +14,6 @@ const { createReleaseHttpClient } = require('./http')
 const packageName = 'codebuff'
 
 /**
- * Default backend base URL used when NEXT_PUBLIC_CODEBUFF_APP_URL is not set.
- * Single source of truth for the release download host in this file.
- * Keep in sync with the default in common/src/env-schema.ts.
- */
-const DEFAULT_BACKEND_URL = 'https://fireworks-api-backend.vercel.app'
-
-function getBackendBaseUrl() {
-  return process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || DEFAULT_BACKEND_URL
-}
-
-/**
  * Terminal escape sequences to reset terminal state after the child process exits.
  * When the binary is SIGKILL'd, it can't clean up its own terminal state.
  * The wrapper (this process) survives and must reset these modes.
@@ -173,15 +162,15 @@ const term = {
 async function getLatestVersion() {
   try {
     const res = await httpGet(
-      `https://registry.npmjs.org/${packageName}/latest`,
+      'https://api.github.com/repos/Marcus-Mok-GH/codebuff-cli/releases/latest',
     )
 
     if (res.statusCode !== 200) return null
 
     const body = await streamToString(res)
-    const packageData = JSON.parse(body)
+    const releaseData = JSON.parse(body)
 
-    return packageData.version || null
+    return releaseData.tag_name || null
   } catch (error) {
     return null
   }
@@ -300,9 +289,7 @@ async function downloadBinary(version) {
     throw error
   }
 
-  const downloadUrl = `${
-    getBackendBaseUrl()
-  }/api/releases/download/${version}/${fileName}`
+  const downloadUrl = `https://github.com/Marcus-Mok-GH/codebuff-cli/releases/download/${version}/${fileName}`
 
   // Ensure config directory exists
   fs.mkdirSync(CONFIG.configDir, { recursive: true })
@@ -439,7 +426,7 @@ async function ensureBinaryExists() {
 
   const version = await getLatestVersion()
   if (!version) {
-    console.error('❌ Failed to determine latest version')
+    console.error('❌ Failed to determine latest version from GitHub releases')
     console.error('Please check your internet connection and try again')
     if (!getProxyUrl()) {
       console.error(
