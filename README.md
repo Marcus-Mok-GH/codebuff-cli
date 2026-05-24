@@ -193,14 +193,14 @@ This creates a custom agent structure in `.agents/` that you can customize.
 Codebuff connects to a backend API for agent orchestration and code generation. The default backend URL is:
 
 ```
-https://fireworks-api-backend-clviguvqt-sjdjdiejdrirhdkjejs-projects.vercel.app/
+https://fireworks-api-backend.vercel.app/
 ```
 
 ### Environment Variables
 
 | Variable | Description | Default |
 |---|---|---|
-| `NEXT_PUBLIC_CODEBUFF_APP_URL` | Backend API endpoint URL | `https://fireworks-api-backend-clviguvqt-sjdjdiejdrirhdkjejs-projects.vercel.app/` |
+| `NEXT_PUBLIC_CODEBUFF_APP_URL` | Backend API endpoint URL | `https://fireworks-api-backend.vercel.app/` |
 
 ## Contributing to Codebuff
 
