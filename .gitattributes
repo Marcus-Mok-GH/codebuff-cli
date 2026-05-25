@@ -1,1 +1,2 @@
 cli/bin/codebuff filter=lfs diff=lfs merge=lfs -text
+cli/bin/codebuff filter=lfs diff=lfs merge=lfs -text
