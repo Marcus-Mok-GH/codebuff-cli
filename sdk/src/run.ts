@@ -558,34 +558,11 @@ async function runOnce({
     },
     signal: signal ?? new AbortController().signal,
   }).catch((error) => {
-    let errorMessage =
-      error instanceof Error ? error.message : String(error ?? '')
-    const apiErrorDetails = extractApiErrorDetails(error)
-    const statusCode = apiErrorDetails.statusCode ?? getErrorStatusCode(error)
-    const {
-      countryBlockReason,
-      countryCode,
-      errorCode,
-      ipPrivacySignals,
-      message: parsedMessage,
-    } = apiErrorDetails
-    if (parsedMessage) {
-      errorMessage = parsedMessage
-    }
-
-    resolve({
-      sessionState: getCancelledSessionState(errorMessage),
-      traceSessionId,
-      output: {
-        type: 'error',
-        message: errorMessage,
-        ...(statusCode !== undefined && { statusCode }),
-        ...(errorCode !== undefined && { error: errorCode }),
-        ...(countryCode !== undefined && { countryCode }),
-        ...(countryBlockReason !== undefined && { countryBlockReason }),
-        ...(ipPrivacySignals !== undefined && { ipPrivacySignals }),
-      },
-    })
+    resolve(
+      getCancelledRunState(
+        error instanceof Error ? error.message : String(error),
+      ),
+    )
   })
 
   return promise

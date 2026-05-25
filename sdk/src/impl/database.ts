@@ -306,18 +306,12 @@ export async function startAgentRun(
 
   const url = new URL(`/api/v1/agent-runs`, WEBSITE_URL)
 
-  console.error('DEBUG startAgentRun URL:', url.toString())
-  console.error('DEBUG startAgentRun WEBSITE_URL:', WEBSITE_URL)
-  console.error('DEBUG startAgentRun agentId:', agentId)
-  console.error('DEBUG startAgentRun apiKey present:', !!apiKey)
-
   try {
     const body = JSON.stringify({
       action: 'START',
       agentId,
       ancestorRunIds,
     })
-    console.error('DEBUG startAgentRun body:', body)
 
     const response = await fetchWithRetry(
       url,
@@ -331,18 +325,13 @@ export async function startAgentRun(
       logger,
     )
 
-    console.error('DEBUG startAgentRun response status:', response.status)
-    console.error('DEBUG startAgentRun response ok:', response.ok)
-
     if (!response.ok) {
       const responseText = await response.text()
-      console.error('DEBUG startAgentRun response text:', responseText)
       logger.error({ response, responseText }, 'startAgentRun request failed')
       return null
     }
 
     const responseBody = await response.json()
-    console.error('DEBUG startAgentRun response body:', JSON.stringify(responseBody))
     if (!responseBody?.runId) {
       logger.error(
         { responseBody },
@@ -351,7 +340,6 @@ export async function startAgentRun(
     }
     return responseBody?.runId ?? null
   } catch (error) {
-    console.error('DEBUG startAgentRun caught error:', error)
     logger.error(
       { error: getErrorObject(error), agentId },
       'startAgentRun error',

@@ -52,7 +52,11 @@ export class CodebuffClient {
     options: RunOptions & CodebuffClientOptions,
   ): Promise<RunState> {
     const effectiveApiKey = options.apiKey ?? this.options.apiKey
-    return run({ ...this.options, ...options, apiKey: effectiveApiKey })
+    try {
+      return await run({ ...this.options, ...options, apiKey: effectiveApiKey })
+    } catch (err) {
+      throw err
+    }
   }
 
   /**

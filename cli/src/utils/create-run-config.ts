@@ -106,7 +106,7 @@ export const createRunConfig = (params: CreateRunConfigParams) => {
     extraCodebuffMetadata,
   } = params
 
-  return {
+  const config = {
     logger,
     agent,
     prompt,
@@ -125,4 +125,6 @@ export const createRunConfig = (params: CreateRunConfigParams) => {
       return { status: 'allow' }
     }) satisfies FileFilter,
   }
+
+  return config
 }
