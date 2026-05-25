@@ -447,6 +447,42 @@ export const handleRunCompletion = (params: {
   })
 }
 
+/** Build a user-facing error string from an ErrorObject, including cause chain and API details. */
+function formatErrorForUI(errorInfo: ReturnType<typeof getErrorObject>): string {
+  const parts: string[] = []
+
+  if (errorInfo.message) {
+    parts.push(errorInfo.message)
+  }
+
+  // Walk the cause chain
+  let cause = errorInfo.cause
+  while (cause) {
+    if (cause.message && cause.message !== errorInfo.message) {
+      parts.push(`Caused by: ${cause.message}`)
+    }
+    cause = cause.cause
+  }
+
+  // Append API-level context if available
+  if (errorInfo.url) {
+    parts.push(`URL: ${errorInfo.url}`)
+  }
+  if (errorInfo.statusCode !== undefined) {
+    parts.push(`Status: ${errorInfo.statusCode}`)
+  }
+  if (errorInfo.responseBody) {
+    // Truncate very large response bodies
+    const body =
+      errorInfo.responseBody.length > 500
+        ? errorInfo.responseBody.slice(0, 500) + '...'
+        : errorInfo.responseBody
+    parts.push(`Response: ${body}`)
+  }
+
+  return parts.join('\n') || 'An unexpected error occurred'
+}
+
 export const handleRunError = (params: {
   error: unknown
   timerController: SendMessageTimerController
@@ -502,6 +538,5 @@ export const handleRunError = (params: {
   }
 
   // Use setError for all errors so they display in UserErrorBanner consistently
-  const errorMessage = errorInfo.message || 'An unexpected error occurred'
-  updater.setError(errorMessage)
+  updater.setError(formatErrorForUI(errorInfo))
 }
