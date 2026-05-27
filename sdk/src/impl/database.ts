@@ -43,10 +43,6 @@ const agentsResponseSchema = z.object({
   data: DynamicAgentTemplateSchema,
 })
 
-/**
- * Fetch with retry logic for transient errors (502, 503, etc.)
- * Implements exponential backoff between retries.
- */
 async function fetchWithRetry(
   url: URL | string,
   options: RequestInit,
@@ -59,12 +55,10 @@ async function fetchWithRetry(
     try {
       const response = await fetch(url, options)
 
-      // If response is OK or not retryable, return it
       if (response.ok || !isRetryableStatusCode(response.status)) {
         return response
       }
 
-      // Retryable error - log and continue to retry
       if (attempt < MAX_RETRIES_PER_MESSAGE) {
         logger?.warn(
           { status: response.status, attempt: attempt + 1, url: String(url) },
@@ -73,11 +67,9 @@ async function fetchWithRetry(
         await new Promise((resolve) => setTimeout(resolve, backoffDelay))
         backoffDelay = Math.min(backoffDelay * 2, RETRY_BACKOFF_MAX_DELAY_MS)
       } else {
-        // Last attempt, return the response even if it's an error
         return response
       }
     } catch (error) {
-      // Network-level error (DNS, connection refused, etc.)
       lastError = error instanceof Error ? error : new Error(String(error))
 
       if (attempt < MAX_RETRIES_PER_MESSAGE) {
@@ -91,7 +83,6 @@ async function fetchWithRetry(
     }
   }
 
-  // All retries exhausted - throw the last error
   throw lastError ?? new Error('Request failed after retries')
 }
 
@@ -143,7 +134,6 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
       { error: getErrorObject(error), apiKey, fields },
       'getUserInfoFromApiKey network error',
     )
-    // Network-level failure: DNS, connection refused, timeout, etc.
     throw createNetworkError('Network request failed')
   }
 
@@ -152,9 +142,7 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
       { apiKey, fields, status: response.status },
       'getUserInfoFromApiKey authentication failed',
     )
-    // Don't cache auth failures - allow retry with potentially updated credentials
     delete userInfoCache[apiKey ?? '']
-    // If the server returns 404 for invalid credentials, surface as 401 to callers
     const normalizedStatus = response.status === 404 ? 401 : response.status
     throw createHttpError('Authentication failed', normalizedStatus)
   }
@@ -253,7 +241,6 @@ export async function fetchAgentFromDatabase(
     const agentConfig = parseResult.data
     const rawAgentData = agentConfig.data as DynamicAgentTemplate
 
-    // Validate the raw agent data with the original agentId (not full identifier)
     const validationResult = validateSingleAgent({
       template: { ...rawAgentData, id: agentId, version: agentConfig.version },
       filePath: `${publisherId}/${agentId}@${agentConfig.version}`,
@@ -272,7 +259,6 @@ export async function fetchAgentFromDatabase(
       return null
     }
 
-    // Set the correct full agent ID for the final template
     const agentTemplate = {
       ...validationResult.agentTemplate!,
       id: `${publisherId}/${agentId}@${agentConfig.version}`,
@@ -318,6 +304,7 @@ export async function startAgentRun(
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body,
@@ -369,6 +356,7 @@ export async function finishAgentRun(
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
@@ -419,6 +407,7 @@ export async function addAgentStep(
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
