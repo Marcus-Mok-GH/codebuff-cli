@@ -291,7 +291,7 @@ async function downloadBinary(version) {
   }
 
   const downloadUrl = `${
-    process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://codebuff.com'
+    process.env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://codebuff.ai'
   }/api/releases/download/${version}/${fileName}`
 
   // Ensure config directory exists

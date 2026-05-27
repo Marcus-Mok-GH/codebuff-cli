@@ -4,7 +4,7 @@ export const CLIENT_ENV_PREFIX = 'NEXT_PUBLIC_'
 
 export const clientEnvSchema = z.object({
   NEXT_PUBLIC_CB_ENVIRONMENT: z.enum(['dev', 'test', 'prod']).default('dev'),
-  NEXT_PUBLIC_CODEBUFF_APP_URL: z.url().min(1).default('https://fireworks-api-backend.vercel.app'),
+  NEXT_PUBLIC_CODEBUFF_APP_URL: z.url().min(1).default('https://api.fireworks.ai/inference/v1'),
   NEXT_PUBLIC_SUPPORT_EMAIL: z.email().min(1).optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).default(''),
   NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL: z.url().min(1).optional(),

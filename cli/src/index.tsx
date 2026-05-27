@@ -27,11 +27,10 @@ import React from 'react'
 
 import { App } from './app'
 import { handlePublish } from './commands/publish'
-import { runPlainLogin } from './login/plain-login'
 import { initializeApp } from './init/init-app'
 import { getProjectRoot, setProjectRoot } from './project-files'
 import { trackEvent } from './utils/analytics'
-import { getAuthToken, getAuthTokenDetails } from './utils/auth'
+import { ensureFireworksApiKey, promptFireworksApiKey, writeFireworksApiKey, readFireworksApiKey } from './utils/fireworks-auth'
 import { resetCodebuffClient } from './utils/codebuff-client'
 import { setApiClientAuthToken } from './utils/codebuff-api'
 import { getCliEnv } from './utils/env'
@@ -266,14 +265,17 @@ async function main(): Promise<void> {
 
   await initializeApp({ cwd })
 
-  // Set the auth token for the API client
-  setApiClientAuthToken(getAuthToken())
-
   // Handle login command before rendering the app
   if (isLoginCommand) {
-    await runPlainLogin()
+    const key = await promptFireworksApiKey()
+    writeFireworksApiKey(key)
+    console.log('Fireworks API key updated.')
     return
   }
+
+  // Set the auth token for the API client
+  const fireworksKey = readFireworksApiKey() ?? (await ensureFireworksApiKey())
+  setApiClientAuthToken(fireworksKey)
 
   // Show project picker only when user starts at the home directory or an ancestor
   const projectRoot = getProjectRoot()

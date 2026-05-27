@@ -1,4 +1,3 @@
-import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { z } from 'zod'
@@ -17,10 +16,6 @@ export type User = z.infer<typeof userSchema>
 
 export const getConfigDir = (): string => {
   return path.join(os.homedir(), '.config', 'manicode')
-}
-
-export const getCredentialsPath = (): string => {
-  return path.join(getConfigDir(), 'credentials.json')
 }
 
 export const getUserCredentials = (): User | null => {
@@ -45,29 +40,4 @@ export const getAuthTokenDetails = (): AuthTokenDetails => {
 
 export const getAuthToken = (): string => {
   return 'dummy'
-}
-
-export const hasAuthCredentials = (): boolean => {
-  return true
-}
-
-export interface AuthValidationResult {
-  authenticated: boolean
-  hasInvalidCredentials: boolean
-}
-
-const readCredentialsFile = (): Record<string, unknown> => {
-  return {}
-}
-
-export const saveUserCredentials = (_user: User): void => {
-  // no-op
-}
-
-export const clearUserCredentials = (): void => {
-  // no-op
-}
-
-export async function logoutUser(): Promise<boolean> {
-  return true
 }
