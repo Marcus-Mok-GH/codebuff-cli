@@ -44,8 +44,13 @@ const agentsResponseSchema = z.object({
 })
 
 /**
- * Fetch with retry logic for transient errors (502, 503, etc.)
- * Implements exponential backoff between retries.
+ * Perform an HTTP fetch with exponential backoff retries for retryable HTTP statuses and network errors.
+ *
+ * @param url - The request URL (string or URL) to fetch.
+ * @param options - Fetch options such as method, headers, and body.
+ * @param logger - Optional logger used to emit retry warnings; expected to implement `warn(obj, msg)`.
+ * @returns The final `Response` from `fetch` (either a successful response or the last received response when retries are exhausted).
+ * @throws An `Error` when all attempts fail due to network/transport errors and no response could be obtained.
  */
 async function fetchWithRetry(
   url: URL | string,
@@ -59,12 +64,10 @@ async function fetchWithRetry(
     try {
       const response = await fetch(url, options)
 
-      // If response is OK or not retryable, return it
       if (response.ok || !isRetryableStatusCode(response.status)) {
         return response
       }
 
-      // Retryable error - log and continue to retry
       if (attempt < MAX_RETRIES_PER_MESSAGE) {
         logger?.warn(
           { status: response.status, attempt: attempt + 1, url: String(url) },
@@ -73,11 +76,9 @@ async function fetchWithRetry(
         await new Promise((resolve) => setTimeout(resolve, backoffDelay))
         backoffDelay = Math.min(backoffDelay * 2, RETRY_BACKOFF_MAX_DELAY_MS)
       } else {
-        // Last attempt, return the response even if it's an error
         return response
       }
     } catch (error) {
-      // Network-level error (DNS, connection refused, etc.)
       lastError = error instanceof Error ? error : new Error(String(error))
 
       if (attempt < MAX_RETRIES_PER_MESSAGE) {
@@ -91,10 +92,22 @@ async function fetchWithRetry(
     }
   }
 
-  // All retries exhausted - throw the last error
   throw lastError ?? new Error('Request failed after retries')
 }
 
+/**
+ * Fetches and returns the requested user fields for the provided API key, using an in-memory cache and fetching only missing fields.
+ *
+ * The function updates the cache with any fields returned by the remote `/api/v1/me` endpoint.
+ *
+ * @param apiKey - The API key used for Bearer authentication for the request.
+ * @param fields - Array of user field names to retrieve; result will contain exactly these keys.
+ * @returns An object mapping each requested field name to its value.
+ * @throws Authentication error when the API key is known to be invalid or authentication fails (HTTP 401/403/404).
+ * @throws Network error when the request cannot be made due to network/transport failures.
+ * @throws Server error for 5xx responses from the server.
+ * @throws HTTP error for other non-successful responses or when the response does not contain the requested fields.
+ */
 export async function getUserInfoFromApiKey<T extends UserColumn>(
   params: GetUserInfoFromApiKeyInput<T>,
 ): GetUserInfoFromApiKeyOutput<T> {
@@ -143,7 +156,6 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
       { error: getErrorObject(error), apiKey, fields },
       'getUserInfoFromApiKey network error',
     )
-    // Network-level failure: DNS, connection refused, timeout, etc.
     throw createNetworkError('Network request failed')
   }
 
@@ -152,9 +164,7 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
       { apiKey, fields, status: response.status },
       'getUserInfoFromApiKey authentication failed',
     )
-    // Don't cache auth failures - allow retry with potentially updated credentials
     delete userInfoCache[apiKey ?? '']
-    // If the server returns 404 for invalid credentials, surface as 401 to callers
     const normalizedStatus = response.status === 404 ? 401 : response.status
     throw createHttpError('Authentication failed', normalizedStatus)
   }
@@ -212,6 +222,15 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
   ) as Awaited<GetUserInfoFromApiKeyOutput<T>>
 }
 
+/**
+ * Fetches an agent template from the remote agents endpoint and returns it after validation.
+ *
+ * @param params - An object containing request parameters:
+ *   - `apiKey` (optional): Bearer token to include in the request.
+ *   - `parsedAgentId`: Object with `publisherId`, `agentId`, and optional `version` used to build the request path.
+ *   - `logger`: Logger used for diagnostic messages.
+ * @returns A validated agent template whose `id` is set to `"{publisherId}/{agentId}@{version}"` on success, or `null` if the fetch, parsing, or validation fails.
+ */
 export async function fetchAgentFromDatabase(
   params: ParamsOf<FetchAgentFromDatabaseFn>,
 ): ReturnType<FetchAgentFromDatabaseFn> {
@@ -253,7 +272,6 @@ export async function fetchAgentFromDatabase(
     const agentConfig = parseResult.data
     const rawAgentData = agentConfig.data as DynamicAgentTemplate
 
-    // Validate the raw agent data with the original agentId (not full identifier)
     const validationResult = validateSingleAgent({
       template: { ...rawAgentData, id: agentId, version: agentConfig.version },
       filePath: `${publisherId}/${agentId}@${agentConfig.version}`,
@@ -272,7 +290,6 @@ export async function fetchAgentFromDatabase(
       return null
     }
 
-    // Set the correct full agent ID for the final template
     const agentTemplate = {
       ...validationResult.agentTemplate!,
       id: `${publisherId}/${agentId}@${agentConfig.version}`,
@@ -299,6 +316,16 @@ export async function fetchAgentFromDatabase(
   }
 }
 
+/**
+ * Initiates a new agent run on the server.
+ *
+ * @param params - Function parameters including authentication and run context:
+ *   - `apiKey` (optional): API key to include as a Bearer token.
+ *   - `agentId`: The identifier of the agent to start.
+ *   - `ancestorRunIds` (optional): Array of ancestor run IDs to link the new run to.
+ *   - `logger`: Logger for recording errors and diagnostics.
+ * @returns The created run's `runId` string if present, `null` on any failure.
+ */
 export async function startAgentRun(
   params: ParamsOf<StartAgentRunFn>,
 ): ReturnType<StartAgentRunFn> {
@@ -318,6 +345,7 @@ export async function startAgentRun(
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body,
@@ -348,6 +376,18 @@ export async function startAgentRun(
   }
 }
 
+/**
+ * Finalizes an agent run by sending a `FINISH` action to the agent-runs API.
+ *
+ * Sends `runId`, final `status`, and optional summary metrics (`totalSteps`, `directCredits`, `totalCredits`) to the server. On non-OK responses or errors the function logs the failure and returns without a value.
+ *
+ * @param params - Parameters for finishing the agent run
+ * @param params.runId - Identifier of the agent run to finalize
+ * @param params.status - Final status of the run (e.g., `'completed'`, `'failed'`)
+ * @param params.totalSteps - Total number of steps executed in the run, if available
+ * @param params.directCredits - Direct credits consumed by the run, if available
+ * @param params.totalCredits - Total credits consumed by the run, if available
+ */
 export async function finishAgentRun(
   params: ParamsOf<FinishAgentRunFn>,
 ): ReturnType<FinishAgentRunFn> {
@@ -369,6 +409,7 @@ export async function finishAgentRun(
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
@@ -395,6 +436,20 @@ export async function finishAgentRun(
   }
 }
 
+/**
+ * Adds a step to an existing agent run and returns the created step's ID if available.
+ *
+ * @param apiKey - Optional API key used for Bearer authentication
+ * @param agentRunId - Identifier of the agent run to append the step to
+ * @param stepNumber - Sequential number for the step within the run
+ * @param credits - Credits consumed by this step
+ * @param childRunIds - Optional array of child run IDs spawned by this step
+ * @param messageId - Optional associated message ID
+ * @param status - Step status; defaults to `'completed'`
+ * @param errorMessage - Optional error message for failed steps
+ * @param startTime - Optional ISO timestamp or epoch representing when the step started
+ * @returns The created `stepId` string if present in the response, `null` otherwise
+ */
 export async function addAgentStep(
   params: ParamsOf<AddAgentStepFn>,
 ): ReturnType<AddAgentStepFn> {
@@ -419,6 +474,7 @@ export async function addAgentStep(
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
         body: JSON.stringify({
