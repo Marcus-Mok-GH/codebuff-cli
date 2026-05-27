@@ -195,7 +195,7 @@ const getUserAgentsAsLocalInfo = (): LocalAgentInfo[] => {
 /**
  * Get user agents from the cache as AgentDefinition[]
  */
-const getUserAgentDefinitions = (): AgentDefinition[] = {
+const getUserAgentDefinitions = (): AgentDefinition[] => {
   return Object.values(userAgentsCache) as AgentDefinition[]
 }
 
@@ -273,7 +273,8 @@ const cachedAgentsByMode: Map<string, LocalAgentInfo[]> = new Map()
  * @param currentAgentMode - If provided, filters bundled agents to only include
  *   subagents of the current mode's agent (e.g., base2's spawnableAgents for DEFAULT mode).
  *   User's local agents from .agents/ are always included regardless of mode.
- */export const loadLocalAgents = (
+ */
+export const loadLocalAgents = (
   currentAgentMode?: AgentMode,
 ): LocalAgentInfo[] => {
   const cacheKey = currentAgentMode ?? 'all'
@@ -332,4 +333,4 @@ const cachedAgentsByMode: Map<string, LocalAgentInfo[]> = new Map()
 
   cachedAgentsByMode.set(cacheKey, sorted)
   return sorted
-
+}
