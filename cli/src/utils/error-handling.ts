@@ -8,7 +8,7 @@ import type {
   FreebuffIpPrivacySignal,
 } from '@codebuff/common/types/freebuff-session'
 
-const defaultAppUrl = env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://api.fireworks.ai/inference/v1'
+const defaultAppUrl = env.NEXT_PUBLIC_CODEBUFF_APP_URL || 'https://codebuff.ai'
 
 // Normalize unknown errors to a user-facing string.
 const extractErrorMessage = (error: unknown, fallback: string): string => {

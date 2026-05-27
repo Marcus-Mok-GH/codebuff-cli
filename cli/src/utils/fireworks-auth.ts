@@ -46,30 +46,32 @@ export async function promptFireworksApiKey(): Promise<string> {
       stdin.resume()
 
       const onData = (data: Buffer) => {
-        const char = data[0]
-        if (char === 0x03) {
-          stdin.setRawMode?.(false)
-          stdin.pause()
-          stdin.removeListener('data', onData)
-          process.exit(130)
-        }
-        if (char === 0x0d || char === 0x0a) {
-          stdin.setRawMode?.(false)
-          stdin.pause()
-          stdin.removeListener('data', onData)
-          process.stdout.write('\n')
-          resolve(input)
-          return
-        }
-        if (char === 0x7f || char === 0x08) {
-          if (input.length > 0) {
-            input = input.slice(0, -1)
-            process.stdout.write('\b \b')
+        for (let i = 0; i < data.length; i++) {
+          const char = data[i]
+          if (char === 0x03) {
+            stdin.setRawMode?.(false)
+            stdin.pause()
+            stdin.removeListener('data', onData)
+            process.exit(130)
           }
-          return
+          if (char === 0x0d || char === 0x0a) {
+            stdin.setRawMode?.(false)
+            stdin.pause()
+            stdin.removeListener('data', onData)
+            process.stdout.write('\n')
+            resolve(input)
+            return
+          }
+          if (char === 0x7f || char === 0x08) {
+            if (input.length > 0) {
+              input = input.slice(0, -1)
+              process.stdout.write('\b \b')
+            }
+            continue
+          }
+          input += String.fromCharCode(char)
+          process.stdout.write('*')
         }
-        input += String.fromCharCode(char)
-        process.stdout.write('*')
       }
 
       stdin.on('data', onData)

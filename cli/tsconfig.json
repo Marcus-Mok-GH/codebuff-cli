@@ -4,6 +4,7 @@
     "esm": true
   },
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "jsxImportSource": "@opentui/react",
     "outDir": "./dist",
