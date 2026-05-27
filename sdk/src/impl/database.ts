@@ -43,6 +43,15 @@ const agentsResponseSchema = z.object({
   data: DynamicAgentTemplateSchema,
 })
 
+/**
+ * Perform an HTTP fetch with exponential backoff retries for retryable HTTP statuses and network errors.
+ *
+ * @param url - The request URL (string or URL) to fetch.
+ * @param options - Fetch options such as method, headers, and body.
+ * @param logger - Optional logger used to emit retry warnings; expected to implement `warn(obj, msg)`.
+ * @returns The final `Response` from `fetch` (either a successful response or the last received response when retries are exhausted).
+ * @throws An `Error` when all attempts fail due to network/transport errors and no response could be obtained.
+ */
 async function fetchWithRetry(
   url: URL | string,
   options: RequestInit,
@@ -86,6 +95,19 @@ async function fetchWithRetry(
   throw lastError ?? new Error('Request failed after retries')
 }
 
+/**
+ * Fetches and returns the requested user fields for the provided API key, using an in-memory cache and fetching only missing fields.
+ *
+ * The function updates the cache with any fields returned by the remote `/api/v1/me` endpoint.
+ *
+ * @param apiKey - The API key used for Bearer authentication for the request.
+ * @param fields - Array of user field names to retrieve; result will contain exactly these keys.
+ * @returns An object mapping each requested field name to its value.
+ * @throws Authentication error when the API key is known to be invalid or authentication fails (HTTP 401/403/404).
+ * @throws Network error when the request cannot be made due to network/transport failures.
+ * @throws Server error for 5xx responses from the server.
+ * @throws HTTP error for other non-successful responses or when the response does not contain the requested fields.
+ */
 export async function getUserInfoFromApiKey<T extends UserColumn>(
   params: GetUserInfoFromApiKeyInput<T>,
 ): GetUserInfoFromApiKeyOutput<T> {
@@ -200,6 +222,15 @@ export async function getUserInfoFromApiKey<T extends UserColumn>(
   ) as Awaited<GetUserInfoFromApiKeyOutput<T>>
 }
 
+/**
+ * Fetches an agent template from the remote agents endpoint and returns it after validation.
+ *
+ * @param params - An object containing request parameters:
+ *   - `apiKey` (optional): Bearer token to include in the request.
+ *   - `parsedAgentId`: Object with `publisherId`, `agentId`, and optional `version` used to build the request path.
+ *   - `logger`: Logger used for diagnostic messages.
+ * @returns A validated agent template whose `id` is set to `"{publisherId}/{agentId}@{version}"` on success, or `null` if the fetch, parsing, or validation fails.
+ */
 export async function fetchAgentFromDatabase(
   params: ParamsOf<FetchAgentFromDatabaseFn>,
 ): ReturnType<FetchAgentFromDatabaseFn> {
@@ -285,6 +316,16 @@ export async function fetchAgentFromDatabase(
   }
 }
 
+/**
+ * Initiates a new agent run on the server.
+ *
+ * @param params - Function parameters including authentication and run context:
+ *   - `apiKey` (optional): API key to include as a Bearer token.
+ *   - `agentId`: The identifier of the agent to start.
+ *   - `ancestorRunIds` (optional): Array of ancestor run IDs to link the new run to.
+ *   - `logger`: Logger for recording errors and diagnostics.
+ * @returns The created run's `runId` string if present, `null` on any failure.
+ */
 export async function startAgentRun(
   params: ParamsOf<StartAgentRunFn>,
 ): ReturnType<StartAgentRunFn> {
@@ -335,6 +376,18 @@ export async function startAgentRun(
   }
 }
 
+/**
+ * Finalizes an agent run by sending a `FINISH` action to the agent-runs API.
+ *
+ * Sends `runId`, final `status`, and optional summary metrics (`totalSteps`, `directCredits`, `totalCredits`) to the server. On non-OK responses or errors the function logs the failure and returns without a value.
+ *
+ * @param params - Parameters for finishing the agent run
+ * @param params.runId - Identifier of the agent run to finalize
+ * @param params.status - Final status of the run (e.g., `'completed'`, `'failed'`)
+ * @param params.totalSteps - Total number of steps executed in the run, if available
+ * @param params.directCredits - Direct credits consumed by the run, if available
+ * @param params.totalCredits - Total credits consumed by the run, if available
+ */
 export async function finishAgentRun(
   params: ParamsOf<FinishAgentRunFn>,
 ): ReturnType<FinishAgentRunFn> {
@@ -383,6 +436,20 @@ export async function finishAgentRun(
   }
 }
 
+/**
+ * Adds a step to an existing agent run and returns the created step's ID if available.
+ *
+ * @param apiKey - Optional API key used for Bearer authentication
+ * @param agentRunId - Identifier of the agent run to append the step to
+ * @param stepNumber - Sequential number for the step within the run
+ * @param credits - Credits consumed by this step
+ * @param childRunIds - Optional array of child run IDs spawned by this step
+ * @param messageId - Optional associated message ID
+ * @param status - Step status; defaults to `'completed'`
+ * @param errorMessage - Optional error message for failed steps
+ * @param startTime - Optional ISO timestamp or epoch representing when the step started
+ * @returns The created `stepId` string if present in the response, `null` otherwise
+ */
 export async function addAgentStep(
   params: ParamsOf<AddAgentStepFn>,
 ): ReturnType<AddAgentStepFn> {
