@@ -334,3 +334,80 @@ export const loadLocalAgents = (
   cachedAgentsByMode.set(cacheKey, sorted)
   return sorted
 }
+
+/**
+ * Load all agent definitions (bundled + user) for runtime use.
+ * User agents override bundled agents with the same ID.
+ */
+export const loadAgentDefinitions = (): AgentDefinition[] => {
+  // Start with bundled agents - these are the default Codebuff agents
+  const bundledAgents = getBundledAgents()
+  const definitions: AgentDefinition[] = Object.values(bundledAgents).map(
+    (def) => ({ ...def }),
+  )
+  const bundledIds = new Set(Object.keys(bundledAgents))
+
+  // Get user agents from the SDK-loaded cache
+  const userAgentDefs = getUserAgentDefinitions()
+  const userAgentIds = userAgentDefs.map((def) => def.id)
+
+  for (const agentDef of userAgentDefs) {
+    // User agents override bundled agents with the same ID
+    if (bundledIds.has(agentDef.id)) {
+      const idx = definitions.findIndex((d) => d.id === agentDef.id)
+      if (idx !== -1) {
+        definitions[idx] = { ...agentDef }
+      }
+    } else {
+      definitions.push({ ...agentDef })
+    }
+  }
+
+  // Auto-add user agent IDs to spawnableAgents of base agents
+  if (userAgentIds.length > 0) {
+    for (const def of definitions) {
+      if (def.id.startsWith('base') && def.spawnableAgents) {
+        const existingSpawnable = new Set(def.spawnableAgents)
+        for (const userAgentId of userAgentIds) {
+          if (!existingSpawnable.has(userAgentId)) {
+            def.spawnableAgents = [...def.spawnableAgents, userAgentId]
+          }
+        }
+      }
+    }
+  }
+
+  // Merge MCP servers from mcp.json into base agents
+  if (Object.keys(mcpServersCache).length > 0) {
+    for (const def of definitions) {
+      if (def.id.startsWith('base')) {
+        if (!def.mcpServers) {
+          def.mcpServers = {}
+        }
+        def.mcpServers = {
+          ...def.mcpServers,
+          ...mcpServersCache,
+        }
+      }
+    }
+  }
+
+  return definitions
+}
+
+/**
+ * Get loaded agents data including directory path.
+ */
+export const getLoadedAgentsData = (): {
+  agents: LocalAgentInfo[]
+  agentsDir: string
+} | null => {
+  const agents = loadLocalAgents()
+  const agentsDir = findAgentsDirectory()
+
+  if (!agentsDir || !agents.length) {
+    return null
+  }
+
+  return { agents, agentsDir }
+}

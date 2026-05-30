@@ -44,7 +44,7 @@
     },
     "cli": {
       "name": "@codebuff/cli",
-      "version": "1.0.18",
+      "version": "1.0.27",
       "bin": {
         "codebuff": "bin/codebuff.cjs",
       },
@@ -192,7 +192,7 @@
     },
     "sdk": {
       "name": "@codebuff/sdk",
-      "version": "0.10.7",
+      "version": "0.10.10",
       "dependencies": {
         "@ai-sdk/anthropic": "2.0.50",
         "@jitl/quickjs-wasmfile-release-sync": "0.31.0",
