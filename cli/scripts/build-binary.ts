@@ -25,6 +25,23 @@ type TargetInfo = {
 }
 
 const VERBOSE = process.env.VERBOSE === 'true'
+
+// A compiled release binary validates its deployment configuration during
+// startup. The artifact smoke is intentionally offline, so provide the same
+// harmless local values used by the CLI smoke suite instead of requiring
+// release secrets or a live service.
+const BINARY_SMOKE_ENV = {
+  NEXT_PUBLIC_CB_ENVIRONMENT: 'test',
+  NEXT_PUBLIC_CODEBUFF_APP_URL: 'http://127.0.0.1:9',
+  NEXT_PUBLIC_FREEBUFF_APP_URL: 'http://127.0.0.1:9',
+  NEXT_PUBLIC_SUPPORT_EMAIL: 'smoke@example.com',
+  NEXT_PUBLIC_POSTHOG_API_KEY: 'smoke-key',
+  NEXT_PUBLIC_POSTHOG_HOST_URL: 'http://127.0.0.1:9',
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'smoke-key',
+  NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL: 'http://127.0.0.1:9',
+  NEXT_PUBLIC_WEB_PORT: '3000',
+} as const
+
 const OVERRIDE_TARGET = process.env.OVERRIDE_TARGET
 const OVERRIDE_PLATFORM = process.env.OVERRIDE_PLATFORM as
   NodeJS.Platform | undefined
@@ -212,7 +229,50 @@ async function main() {
     chmodSync(outputFile, 0o755)
   }
 
+  runCompiledBinarySmoke({ outputFile, targetInfo })
+
   logAlways(`✅ Built ${outputFilename} (${getCliTargetLabel(targetInfo)})`)
+}
+
+/**
+ * A syntactically valid compiled executable can still contain the wrong entry
+ * point. In particular, `--help` and `--version` may work while starting the
+ * no-argument TUI runs a bundled test script instead. Run the no-argument
+ * smoke on native builds so a release cannot ship an artifact that fails its
+ * primary startup path.
+ *
+ * Cross-compiled binaries cannot be executed on the host, so their smoke test
+ * remains the responsibility of a native target runner. The release workflow
+ * builds Windows artifacts on Windows, which makes this check a publication
+ * gate for the affected target.
+ */
+function runCompiledBinarySmoke({
+  outputFile,
+  targetInfo,
+}: {
+  outputFile: string
+  targetInfo: TargetInfo
+}): void {
+  if (process.env.SKIP_BINARY_SMOKE === 'true') {
+    logAlways('Skipping compiled binary smoke (SKIP_BINARY_SMOKE=true)')
+    return
+  }
+
+  if (
+    targetInfo.platform !== process.platform ||
+    targetInfo.arch !== process.arch
+  ) {
+    logAlways(
+      `Skipping compiled binary smoke for cross-target ${getCliTargetLabel(targetInfo)}`,
+    )
+    return
+  }
+
+  logAlways(`Running compiled binary startup smoke for ${outputFile}...`)
+  runCommand('bun', ['scripts/smoke-binary.ts', outputFile], {
+    cwd: cliRoot,
+    env: { ...process.env, ...BINARY_SMOKE_ENV },
+  })
 }
 
 main().catch((error: unknown) => {
